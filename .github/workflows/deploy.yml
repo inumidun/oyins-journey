@@ -1,0 +1,68 @@
+name: Deploy Oyin's Journey
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+    
+    - name: Terraform Init
+      working-directory: ./infrastructure
+      run: terraform init
+    
+    - name: Terraform Plan
+      working-directory: ./infrastructure
+      run: terraform plan
+    
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main'
+      working-directory: ./infrastructure
+      run: terraform apply -auto-approve
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Package Lambda functions
+      run: |
+        cd api
+        zip -r skills.zip skills.py
+        zip -r projects.zip projects.py
+        zip -r certifications.zip certifications.py
+        zip -r adrs.zip adrs.py
+        zip -r version.zip version.py
+        zip -r admin.zip admin.py
+    
+    - name: Deploy to S3
+      run: |
+        aws s3 sync frontend/ s3://$(terraform -chdir=infrastructure output -raw s3_bucket_name) --delete
+        aws s3 sync admin/ s3://$(terraform -chdir=infrastructure output -raw s3_admin_bucket_name) --delete
+    
+    - name: Update CV Version
+      run: |
+        echo "Incrementing CV version..."
+        # This would update the version in DynamoDB
