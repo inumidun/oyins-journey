@@ -1,13 +1,3 @@
-variable "name_prefix" {
-  description = "Name prefix for resources"
-  type        = string
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-}
-
 # Use consistent bucket suffix based on environment
 locals {
   bucket_suffix = substr(md5("${var.name_prefix}-${var.environment}"), 0, 8)

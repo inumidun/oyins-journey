@@ -1,13 +1,3 @@
-variable "name_prefix" {
-  description = "Name prefix for resources"
-  type        = string
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-}
-
 # DynamoDB Tables
 resource "aws_dynamodb_table" "skills" {
   name           = "${var.name_prefix}-skills"
