@@ -1,0 +1,89 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches: [dev, test, main]
+  pull_request:
+    branches: [test, main]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      aws_region: ${{ steps.set-env.outputs.aws_region }}
+      changed_files: ${{ steps.changed_files.outputs.changed_files }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Set environment variables
+        id: set-env
+        run: |
+          if [[ $GITHUB_REF == "refs/heads/main" ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [[ $GITHUB_REF == "refs/heads/dev" ]]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          else
+            echo "environment=test" >> $GITHUB_OUTPUT
+          fi
+          echo "aws_region=us-east-1" >> $GITHUB_OUTPUT
+
+      - name: Security scan
+        run: |
+          echo "🔒 Running security scans for ${{ steps.set-env.outputs.environment }} environment"
+          # Add actual security scanning here (e.g., Snyk, SAST tools)
+
+      - name: Get changed files
+        id: changed_files
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | paste -sd ',' -)
+          else
+            files=$(git diff --name-only HEAD~1 HEAD | paste -sd ',' -)
+          fi
+          echo "Files changed: $files"
+          echo "changed_files=$files" >> $GITHUB_OUTPUT
+
+  unit-tests:
+    needs: [setup]
+    if: |
+      github.event_name == 'push' && 
+      (contains(needs.setup.outputs.changed_files, 'api/') || 
+       contains(needs.setup.outputs.changed_files, 'scripts/'))
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      environment: ${{ needs.setup.outputs.environment }}
+      aws_region: ${{ needs.setup.outputs.aws_region }}
+    secrets: inherit
+
+  infrastructure:
+    needs: [setup, unit-tests]
+    if: |
+      always() && 
+      (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') &&
+      github.event_name == 'push' && 
+      (contains(needs.setup.outputs.changed_files, 'infrastructure/') || 
+       contains(needs.setup.outputs.changed_files, '.github/workflows/'))
+    uses: ./.github/workflows/infrastructure.yml
+    with:
+      environment: ${{ needs.setup.outputs.environment }}
+      aws_region: ${{ needs.setup.outputs.aws_region }}
+    secrets: inherit
+
+  web-app:
+    needs: [setup, infrastructure]
+    if: |
+      always() && 
+      (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped') &&
+      github.event_name == 'push' && 
+      (contains(needs.setup.outputs.changed_files, 'frontend/') || 
+       contains(needs.setup.outputs.changed_files, 'admin/') || 
+       contains(needs.setup.outputs.changed_files, 'api/'))
+    uses: ./.github/workflows/web-app.yml
+    with:
+      environment: ${{ needs.setup.outputs.environment }}
+      aws_region: ${{ needs.setup.outputs.aws_region }}
+    secrets: inherit

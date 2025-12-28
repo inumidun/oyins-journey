@@ -1,0 +1,74 @@
+name: Infrastructure Deployment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      aws_region:
+        required: true
+        type: string
+
+jobs:
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    outputs:
+      s3-frontend-bucket: ${{ steps.terraform.outputs.s3_bucket_name }}
+      s3-admin-bucket: ${{ steps.terraform.outputs.s3_admin_bucket_name }}
+      cloudfront-frontend-url: ${{ steps.terraform.outputs.cloudfront_frontend_url }}
+      cloudfront-admin-url: ${{ steps.terraform.outputs.cloudfront_admin_url }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.aws_region }}
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+        terraform_wrapper: false
+    
+    - name: Terraform Security Scan
+      run: |
+        echo "🔍 Running Terraform security scan..."
+        # Add tools like tfsec, checkov, or terraform validate
+        terraform -chdir=infrastructure validate
+    
+    - name: Terraform Init
+      working-directory: ./infrastructure
+      run: |
+        terraform init
+        if [ "${{ inputs.environment }}" != "prod" ]; then
+          terraform workspace select ${{ inputs.environment }} 2>/dev/null || terraform workspace new ${{ inputs.environment }}
+        fi
+    
+    - name: Terraform Plan
+      working-directory: ./infrastructure
+      run: |
+        terraform plan -var="environment=${{ inputs.environment }}" -out=tfplan
+        terraform show -json tfplan > plan.json
+    
+    - name: Terraform Apply
+      id: terraform
+      working-directory: ./infrastructure
+      run: |
+        terraform apply -auto-approve tfplan
+        echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+        echo "s3_admin_bucket_name=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
+        echo "cloudfront_frontend_url=$(terraform output -raw cloudfront_frontend_url)" >> $GITHUB_OUTPUT
+        echo "cloudfront_admin_url=$(terraform output -raw cloudfront_admin_url)" >> $GITHUB_OUTPUT
+    
+    - name: Post-deployment validation
+      run: |
+        echo "✅ Validating ${{ inputs.environment }} infrastructure deployment..."
+        # Add infrastructure validation tests

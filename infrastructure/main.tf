@@ -28,7 +28,6 @@ variable "project_name" {
 variable "environment" {
   description = "Environment (dev, test, prod)"
   type        = string
-  default     = "dev"
 }
 
 # Local values for environment-specific naming
@@ -140,7 +139,7 @@ resource "aws_dynamodb_table" "certifications" {
   }
 }
 
-# S3 Bucket for Frontend
+# S3 Bucket for Frontend (Private)
 resource "aws_s3_bucket" "frontend" {
   bucket = "${local.name_prefix}-frontend-${random_string.bucket_suffix.result}"
   
@@ -150,7 +149,7 @@ resource "aws_s3_bucket" "frontend" {
   }
 }
 
-# S3 Bucket for Admin
+# S3 Bucket for Admin (Private)
 resource "aws_s3_bucket" "admin" {
   bucket = "${local.name_prefix}-admin-${random_string.bucket_suffix.result}"
   
@@ -166,40 +165,108 @@ resource "random_string" "bucket_suffix" {
   upper   = false
 }
 
-resource "aws_s3_bucket_website_configuration" "frontend" {
-  bucket = aws_s3_bucket.frontend.id
+# CloudFront Origin Access Control
+resource "aws_cloudfront_origin_access_control" "frontend" {
+  name                              = "${local.name_prefix}-frontend-oac"
+  description                       = "OAC for ${local.name_prefix} frontend"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
 
-  index_document {
-    suffix = "index.html"
+resource "aws_cloudfront_origin_access_control" "admin" {
+  name                              = "${local.name_prefix}-admin-oac"
+  description                       = "OAC for ${local.name_prefix} admin"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+# CloudFront Distribution for Frontend
+resource "aws_cloudfront_distribution" "frontend" {
+  origin {
+    domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
+    origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
+    origin_id                = "S3-${aws_s3_bucket.frontend.bucket}"
+  }
+
+  enabled             = true
+  default_root_object = "index.html"
+
+  default_cache_behavior {
+    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "S3-${aws_s3_bucket.frontend.bucket}"
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+
+  tags = {
+    Name = "${local.name_prefix} Frontend CDN"
+    Environment = var.environment
   }
 }
 
-resource "aws_s3_bucket_website_configuration" "admin" {
-  bucket = aws_s3_bucket.admin.id
+# CloudFront Distribution for Admin
+resource "aws_cloudfront_distribution" "admin" {
+  origin {
+    domain_name              = aws_s3_bucket.admin.bucket_regional_domain_name
+    origin_access_control_id = aws_cloudfront_origin_access_control.admin.id
+    origin_id                = "S3-${aws_s3_bucket.admin.bucket}"
+  }
 
-  index_document {
-    suffix = "index.html"
+  enabled             = true
+  default_root_object = "index.html"
+
+  default_cache_behavior {
+    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "S3-${aws_s3_bucket.admin.bucket}"
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+
+  tags = {
+    Name = "${local.name_prefix} Admin CDN"
+    Environment = var.environment
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "frontend" {
-  bucket = aws_s3_bucket.frontend.id
-
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
-resource "aws_s3_bucket_public_access_block" "admin" {
-  bucket = aws_s3_bucket.admin.id
-
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
+# S3 Bucket Policy for CloudFront OAC
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
@@ -207,11 +274,18 @@ resource "aws_s3_bucket_policy" "frontend" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.frontend.arn}/*"
+        Sid    = "AllowCloudFrontServicePrincipal"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.frontend.arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = aws_cloudfront_distribution.frontend.arn
+          }
+        }
       }
     ]
   })
@@ -224,11 +298,18 @@ resource "aws_s3_bucket_policy" "admin" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.admin.arn}/*"
+        Sid    = "AllowCloudFrontServicePrincipal"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.admin.arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = aws_cloudfront_distribution.admin.arn
+          }
+        }
       }
     ]
   })
@@ -315,14 +396,14 @@ output "s3_bucket_name" {
   value = aws_s3_bucket.frontend.bucket
 }
 
-output "s3_website_url" {
-  value = aws_s3_bucket_website_configuration.frontend.website_endpoint
-}
-
 output "s3_admin_bucket_name" {
   value = aws_s3_bucket.admin.bucket
 }
 
-output "s3_admin_website_url" {
-  value = aws_s3_bucket_website_configuration.admin.website_endpoint
+output "cloudfront_frontend_url" {
+  value = "https://${aws_cloudfront_distribution.frontend.domain_name}"
+}
+
+output "cloudfront_admin_url" {
+  value = "https://${aws_cloudfront_distribution.admin.domain_name}"
 }
