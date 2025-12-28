@@ -26,9 +26,20 @@ variable "project_name" {
   default     = "oyins-journey"
 }
 
+variable "environment" {
+  description = "Environment (dev, test, prod)"
+  type        = string
+  default     = "dev"
+}
+
+# Local values for environment-specific naming
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+}
+
 # DynamoDB Tables
 resource "aws_dynamodb_table" "skills" {
-  name           = "${var.project_name}-skills"
+  name           = "${local.name_prefix}-skills"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "skill_id"
 
@@ -49,12 +60,13 @@ resource "aws_dynamodb_table" "skills" {
   }
 
   tags = {
-    Name = "LAR Skills"
+    Name = "${local.name_prefix} Skills"
+    Environment = var.environment
   }
 }
 
 resource "aws_dynamodb_table" "projects" {
-  name           = "${var.project_name}-projects"
+  name           = "${local.name_prefix}-projects"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "project_id"
 
@@ -64,12 +76,13 @@ resource "aws_dynamodb_table" "projects" {
   }
 
   tags = {
-    Name = "LAR Projects"
+    Name = "${local.name_prefix} Projects"
+    Environment = var.environment
   }
 }
 
 resource "aws_dynamodb_table" "adrs" {
-  name           = "${var.project_name}-adrs"
+  name           = "${local.name_prefix}-adrs"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "adr_id"
 
@@ -79,12 +92,13 @@ resource "aws_dynamodb_table" "adrs" {
   }
 
   tags = {
-    Name = "LAR Architecture Decisions"
+    Name = "${local.name_prefix} Architecture Decisions"
+    Environment = var.environment
   }
 }
 
 resource "aws_dynamodb_table" "versions" {
-  name           = "${var.project_name}-versions"
+  name           = "${local.name_prefix}-versions"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "version_id"
 
@@ -94,13 +108,14 @@ resource "aws_dynamodb_table" "versions" {
   }
 
   tags = {
-    Name = "Oyins Journey Versions"
+    Name = "${local.name_prefix} Versions"
+    Environment = var.environment
   }
 }
 
 # Certifications Table
 resource "aws_dynamodb_table" "certifications" {
-  name           = "${var.project_name}-certifications"
+  name           = "${local.name_prefix}-certifications"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "cert_id"
 
@@ -121,18 +136,29 @@ resource "aws_dynamodb_table" "certifications" {
   }
 
   tags = {
-    Name = "Oyins Journey Certifications"
+    Name = "${local.name_prefix} Certifications"
+    Environment = var.environment
   }
 }
 
 # S3 Bucket for Frontend
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.project_name}-frontend-${random_string.bucket_suffix.result}"
+  bucket = "${local.name_prefix}-frontend-${random_string.bucket_suffix.result}"
+  
+  tags = {
+    Name = "${local.name_prefix} Frontend"
+    Environment = var.environment
+  }
 }
 
 # S3 Bucket for Admin
 resource "aws_s3_bucket" "admin" {
-  bucket = "${var.project_name}-admin-${random_string.bucket_suffix.result}"
+  bucket = "${local.name_prefix}-admin-${random_string.bucket_suffix.result}"
+  
+  tags = {
+    Name = "${local.name_prefix} Admin"
+    Environment = var.environment
+  }
 }
 
 resource "random_string" "bucket_suffix" {
@@ -211,13 +237,18 @@ resource "aws_s3_bucket_policy" "admin" {
 
 # API Gateway
 resource "aws_api_gateway_rest_api" "lar_api" {
-  name        = "${var.project_name}-api"
-  description = "Oyin's Journey API"
+  name        = "${local.name_prefix}-api"
+  description = "Oyin's Journey API - ${var.environment}"
+  
+  tags = {
+    Name = "${local.name_prefix} API"
+    Environment = var.environment
+  }
 }
 
 # Lambda IAM Role
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.project_name}-lambda-role"
+  name = "${local.name_prefix}-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -231,10 +262,15 @@ resource "aws_iam_role" "lambda_role" {
       }
     ]
   })
+  
+  tags = {
+    Name = "${local.name_prefix} Lambda Role"
+    Environment = var.environment
+  }
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
-  name = "${var.project_name}-lambda-policy"
+  name = "${local.name_prefix}-lambda-policy"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
