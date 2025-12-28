@@ -1,6 +1,6 @@
-# Use consistent bucket suffix based on environment and timestamp
+# Use consistent bucket suffix based on environment
 locals {
-  bucket_suffix = substr(md5("${var.name_prefix}-${var.environment}-${formatdate("YYYY-MM-DD", timestamp())}"), 0, 8)
+  bucket_suffix = substr(md5("${var.name_prefix}-${var.environment}"), 0, 8)
 }
 
 # S3 Buckets (Private)
@@ -24,7 +24,7 @@ resource "aws_s3_bucket" "admin" {
 
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "frontend" {
-  name                              = "${var.name_prefix}-frontend-oac-${local.bucket_suffix}"
+  name                              = "${var.name_prefix}-frontend-oac"
   description                       = "OAC for ${var.name_prefix} frontend"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -32,7 +32,7 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
 }
 
 resource "aws_cloudfront_origin_access_control" "admin" {
-  name                              = "${var.name_prefix}-admin-oac-${local.bucket_suffix}"
+  name                              = "${var.name_prefix}-admin-oac"
   description                       = "OAC for ${var.name_prefix} admin"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
