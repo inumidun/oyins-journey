@@ -21,13 +21,13 @@ jobs:
       run: |
         if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
-          echo "TF_WORKSPACE=default" >> $GITHUB_ENV
+          echo "WORKSPACE=default" >> $GITHUB_ENV
         elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
           echo "ENVIRONMENT=test" >> $GITHUB_ENV
-          echo "TF_WORKSPACE=test" >> $GITHUB_ENV
+          echo "WORKSPACE=test" >> $GITHUB_ENV
         elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
-          echo "TF_WORKSPACE=dev" >> $GITHUB_ENV
+          echo "WORKSPACE=dev" >> $GITHUB_ENV
         fi
     
     - name: Configure AWS credentials
@@ -46,8 +46,8 @@ jobs:
       working-directory: ./infrastructure
       run: |
         terraform init
-        if [ "${{ env.TF_WORKSPACE }}" != "default" ]; then
-          terraform workspace select ${{ env.TF_WORKSPACE }} 2>/dev/null || terraform workspace new ${{ env.TF_WORKSPACE }}
+        if [ "${{ env.WORKSPACE }}" != "default" ]; then
+          terraform workspace select ${{ env.WORKSPACE }} 2>/dev/null || terraform workspace new ${{ env.WORKSPACE }}
         fi
     
     - name: Terraform Plan
@@ -82,4 +82,4 @@ jobs:
       run: |
         echo "Deployed ${{ env.ENVIRONMENT }} environment from ${{ github.ref }}"
         echo "Environment: ${{ env.ENVIRONMENT }}"
-        echo "Terraform Workspace: ${{ env.TF_WORKSPACE }}"
+        echo "Terraform Workspace: ${{ env.WORKSPACE }}"
