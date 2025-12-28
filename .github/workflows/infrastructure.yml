@@ -55,7 +55,7 @@ jobs:
     - name: Terraform Plan
       working-directory: ./infrastructure
       run: |
-        terraform plan -var="environment=${{ inputs.environment }}" -out=tfplan
+        terraform plan -var-file="config/${{ inputs.environment }}.tfvars" -out=tfplan
         terraform show -json tfplan > plan.json
     
     - name: Terraform Apply

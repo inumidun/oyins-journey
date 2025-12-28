@@ -8,15 +8,14 @@ variable "environment" {
   type        = string
 }
 
-resource "random_string" "bucket_suffix" {
-  length  = 8
-  special = false
-  upper   = false
+# Use consistent bucket suffix based on environment
+locals {
+  bucket_suffix = substr(md5("${var.name_prefix}-${var.environment}"), 0, 8)
 }
 
 # S3 Buckets (Private)
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.name_prefix}-frontend-${random_string.bucket_suffix.result}"
+  bucket = "${var.name_prefix}-frontend-${local.bucket_suffix}"
   
   tags = {
     Name = "${var.name_prefix} Frontend"
@@ -25,7 +24,7 @@ resource "aws_s3_bucket" "frontend" {
 }
 
 resource "aws_s3_bucket" "admin" {
-  bucket = "${var.name_prefix}-admin-${random_string.bucket_suffix.result}"
+  bucket = "${var.name_prefix}-admin-${local.bucket_suffix}"
   
   tags = {
     Name = "${var.name_prefix} Admin"
