@@ -37,12 +37,6 @@ jobs:
         terraform_version: 1.5.0
         terraform_wrapper: false
     
-    - name: Terraform Security Scan
-      run: |
-        echo "🔍 Running Terraform security scan..."
-        # Add tools like tfsec, checkov, or terraform validate
-        terraform -chdir=infrastructure validate
-    
     - name: Terraform Init
       working-directory: ./infrastructure
       run: |
@@ -50,6 +44,13 @@ jobs:
         if [ "${{ inputs.environment }}" != "prod" ]; then
           terraform workspace select ${{ inputs.environment }} 2>/dev/null || terraform workspace new ${{ inputs.environment }}
         fi
+    
+    - name: Terraform Security Scan
+      working-directory: ./infrastructure
+      run: |
+        echo "🔍 Running Terraform security scan..."
+        # Add tools like tfsec, checkov, or terraform validate
+        terraform validate
     
     - name: Terraform Plan
       working-directory: ./infrastructure
