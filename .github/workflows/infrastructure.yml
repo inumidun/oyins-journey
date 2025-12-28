@@ -58,6 +58,17 @@ jobs:
         terraform plan -var-file="config/${{ inputs.environment }}.tfvars" -out=tfplan
         terraform show -json tfplan > plan.json
     
+    - name: Import Existing Resources (if needed)
+      working-directory: ./infrastructure
+      run: |
+        # Import existing resources if they exist
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.skills oyins-journey-dev-skills || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.projects oyins-journey-dev-projects || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.adrs oyins-journey-dev-adrs || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.versions oyins-journey-dev-versions || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.certifications oyins-journey-dev-certifications || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.api.aws_iam_role.lambda_role oyins-journey-dev-lambda-role || true
+    
     - name: Terraform Apply
       id: terraform
       working-directory: ./infrastructure
