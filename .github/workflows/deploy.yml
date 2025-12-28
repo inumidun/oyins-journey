@@ -47,7 +47,7 @@ jobs:
       run: |
         terraform init
         if [ "${{ env.TF_WORKSPACE }}" != "default" ]; then
-          terraform workspace select ${{ env.TF_WORKSPACE }} || terraform workspace new ${{ env.TF_WORKSPACE }}
+          terraform workspace select ${{ env.TF_WORKSPACE }} 2>/dev/null || terraform workspace new ${{ env.TF_WORKSPACE }}
         fi
     
     - name: Terraform Plan
@@ -61,7 +61,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.13'
     
     - name: Package Lambda functions
       run: |
