@@ -2,6 +2,13 @@ name: Web Application Deployment
 
 on:
   workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      aws_region:
+        required: true
+        type: string
 
 jobs:
   deploy-lambda:
@@ -44,7 +51,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: ${{ inputs.aws_region }}
     
     - name: Get infrastructure outputs
       id: infra
