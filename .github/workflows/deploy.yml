@@ -46,7 +46,9 @@ jobs:
       working-directory: ./infrastructure
       run: |
         terraform init
-        terraform workspace select ${{ env.TF_WORKSPACE }} || terraform workspace new ${{ env.TF_WORKSPACE }}
+        if [ "${{ env.TF_WORKSPACE }}" != "default" ]; then
+          terraform workspace select ${{ env.TF_WORKSPACE }} || terraform workspace new ${{ env.TF_WORKSPACE }}
+        fi
     
     - name: Terraform Plan
       working-directory: ./infrastructure
