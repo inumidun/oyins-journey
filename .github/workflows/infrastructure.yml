@@ -13,6 +13,8 @@ on:
 jobs:
   deploy-infrastructure:
     runs-on: ubuntu-latest
+    env:
+      PROJECT_NAME: oyins-journey
     
     outputs:
       s3-frontend-bucket: ${{ steps.terraform-apply.outputs.s3_bucket_name }}
@@ -62,7 +64,10 @@ jobs:
       working-directory: ./infrastructure
       run: |
         terraform apply -auto-approve tfplan
-        echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
-        echo "s3_admin_bucket_name=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
-        echo "cloudfront_frontend_url=$(terraform output -raw cloudfront_frontend_url)" >> $GITHUB_OUTPUT
-        echo "cloudfront_admin_url=$(terraform output -raw cloudfront_admin_url)" >> $GITHUB_OUTPUT
+        
+        # Store outputs in SSM Parameter Store for frontend workflow
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-api-url" --value "$(terraform output -raw api_gateway_url)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-s3-bucket" --value "$(terraform output -raw s3_bucket_name)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-s3-admin-bucket" --value "$(terraform output -raw s3_admin_bucket_name)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-cloudfront-frontend-id" --value "$(terraform output -raw cloudfront_frontend_id)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-cloudfront-admin-id" --value "$(terraform output -raw cloudfront_admin_id)" --type "String" --overwrite

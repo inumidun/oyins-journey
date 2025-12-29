@@ -1,34 +1,17 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Header from './components/Header';
-import HeroSection from './components/HeroSection';
-import APIExplorer from './components/APIExplorer';
-import SkillsSection from './components/SkillsSection';
-import ProjectsSection from './components/ProjectsSection';
-import './index.css';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gray-900 text-white">
-        <Header />
-        <main>
-          <HeroSection />
-          <APIExplorer />
-          <SkillsSection />
-          <ProjectsSection />
-        </main>
-      </div>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+      </Routes>
+    </BrowserRouter>
+  </QueryClientProvider>
+);
 
 export default App;
