@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -74,25 +78,9 @@ module "api" {
     module.database.certifications_table_arn
   ]
   
-  # Skills Lambda
+  # Skills Lambda only for now
   skills_invoke_arn     = module.lambda.skills_invoke_arn
   skills_function_name  = "${local.name_prefix}-skills"
-  
-  # Projects Lambda
-  projects_invoke_arn     = module.lambda.projects_invoke_arn
-  projects_function_name  = "${local.name_prefix}-projects"
-  
-  # Certifications Lambda
-  certifications_invoke_arn     = module.lambda.certifications_invoke_arn
-  certifications_function_name  = "${local.name_prefix}-certifications"
-  
-  # ADRs Lambda
-  adrs_invoke_arn     = module.lambda.adrs_invoke_arn
-  adrs_function_name  = "${local.name_prefix}-adrs"
-  
-  # Version Lambda
-  version_invoke_arn     = module.lambda.version_invoke_arn
-  version_function_name  = "${local.name_prefix}-version"
 }
 
 # Outputs

@@ -1,1 +1,24 @@
-variable \"name_prefix\" {\n  description = \"Name prefix for resources\"\n  type        = string\n}\n\nvariable \"environment\" {\n  description = \"Environment name\"\n  type        = string\n}\n\nvariable \"dynamodb_table_arns\" {\n  description = \"List of DynamoDB table ARNs for Lambda permissions\"\n  type        = list(string)\n}\n\n# Skills Lambda\nvariable \"skills_invoke_arn\" {\n  description = \"Skills Lambda function invoke ARN\"\n  type        = string\n}\n\nvariable \"skills_function_name\" {\n  description = \"Skills Lambda function name\"\n  type        = string\n}\n\n# Projects Lambda\nvariable \"projects_invoke_arn\" {\n  description = \"Projects Lambda function invoke ARN\"\n  type        = string\n}\n\nvariable \"projects_function_name\" {\n  description = \"Projects Lambda function name\"\n  type        = string\n}\n\n# Certifications Lambda\nvariable \"certifications_invoke_arn\" {\n  description = \"Certifications Lambda function invoke ARN\"\n  type        = string\n}\n\nvariable \"certifications_function_name\" {\n  description = \"Certifications Lambda function name\"\n  type        = string\n}\n\n# ADRs Lambda\nvariable \"adrs_invoke_arn\" {\n  description = \"ADRs Lambda function invoke ARN\"\n  type        = string\n}\n\nvariable \"adrs_function_name\" {\n  description = \"ADRs Lambda function name\"\n  type        = string\n}\n\n# Version Lambda\nvariable \"version_invoke_arn\" {\n  description = \"Version Lambda function invoke ARN\"\n  type        = string\n}\n\nvariable \"version_function_name\" {\n  description = \"Version Lambda function name\"\n  type        = string\n}
+variable "name_prefix" {
+  description = "Name prefix for resources"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+}
+
+variable "dynamodb_table_arns" {
+  description = "List of DynamoDB table ARNs for Lambda permissions"
+  type        = list(string)
+}
+
+variable "skills_invoke_arn" {
+  description = "Skills Lambda function invoke ARN"
+  type        = string
+}
+
+variable "skills_function_name" {
+  description = "Skills Lambda function name"
+  type        = string
+}
