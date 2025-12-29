@@ -63,12 +63,18 @@ jobs:
       id: infra
       run: |
         cd infrastructure
-        terraform init
+        terraform init -reconfigure
         if [ "${{ inputs.environment }}" != "prod" ]; then
           terraform workspace select ${{ inputs.environment }} 2>/dev/null || terraform workspace new ${{ inputs.environment }}
         fi
-        echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
-        echo "admin_bucket=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
+        # Verify outputs exist before using them
+        if terraform output s3_bucket_name >/dev/null 2>&1; then
+          echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+          echo "admin_bucket=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
+        else
+          echo "Error: Terraform outputs not found. Infrastructure may not be deployed."
+          exit 1
+        fi
     
     - name: Deploy to S3
       run: |
