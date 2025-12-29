@@ -73,7 +73,7 @@ jobs:
     
     - name: Terraform Apply
       if: steps.check-resources.outputs.apply_needed == 'true'
-      id: terraform
+      id: terraform-apply
       working-directory: ./infrastructure
       run: |
         terraform apply -auto-approve tfplan
@@ -84,13 +84,28 @@ jobs:
     
     - name: Get existing outputs (if no apply needed)
       if: steps.check-resources.outputs.apply_needed == 'false'
-      id: terraform
+      id: terraform-outputs
       working-directory: ./infrastructure
       run: |
         echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
         echo "s3_admin_bucket_name=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
         echo "cloudfront_frontend_url=$(terraform output -raw cloudfront_frontend_url)" >> $GITHUB_OUTPUT
         echo "cloudfront_admin_url=$(terraform output -raw cloudfront_admin_url)" >> $GITHUB_OUTPUT
+    
+    - name: Set final outputs
+      id: terraform
+      run: |
+        if [ "${{ steps.check-resources.outputs.apply_needed }}" == "true" ]; then
+          echo "s3_bucket_name=${{ steps.terraform-apply.outputs.s3_bucket_name }}" >> $GITHUB_OUTPUT
+          echo "s3_admin_bucket_name=${{ steps.terraform-apply.outputs.s3_admin_bucket_name }}" >> $GITHUB_OUTPUT
+          echo "cloudfront_frontend_url=${{ steps.terraform-apply.outputs.cloudfront_frontend_url }}" >> $GITHUB_OUTPUT
+          echo "cloudfront_admin_url=${{ steps.terraform-apply.outputs.cloudfront_admin_url }}" >> $GITHUB_OUTPUT
+        else
+          echo "s3_bucket_name=${{ steps.terraform-outputs.outputs.s3_bucket_name }}" >> $GITHUB_OUTPUT
+          echo "s3_admin_bucket_name=${{ steps.terraform-outputs.outputs.s3_admin_bucket_name }}" >> $GITHUB_OUTPUT
+          echo "cloudfront_frontend_url=${{ steps.terraform-outputs.outputs.cloudfront_frontend_url }}" >> $GITHUB_OUTPUT
+          echo "cloudfront_admin_url=${{ steps.terraform-outputs.outputs.cloudfront_admin_url }}" >> $GITHUB_OUTPUT
+        fi
     
     - name: Post-deployment validation
       run: |
