@@ -16,7 +16,6 @@ jobs:
 
   unit-tests:
     needs: [security-scan]
-    if: contains(github.event.head_commit.modified, 'api/') || contains(github.event.head_commit.modified, 'scripts/')
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
@@ -31,6 +30,7 @@ jobs:
 
   web-app:
     needs: [infrastructure]
+    if: always() && (needs.infrastructure.result == 'success')
     uses: ./.github/workflows/web-app.yml
     with:
       environment: ${{ github.ref_name }}
