@@ -1,7 +1,7 @@
 # API Gateway
 resource "aws_api_gateway_rest_api" "main" {
   name        = "${var.name_prefix}-api"
-  description = "Oyin's Journey API - ${var.environment}"
+  description = "Oyin's Journey API - ${var.environment} environment"
 }
 
 # Lambda IAM Role
