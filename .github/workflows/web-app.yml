@@ -40,7 +40,8 @@ jobs:
         id: infra
         run: |
           cd infrastructure
-          terraform init -backend-config="key=infrastructure/${{ inputs.environment }}/terraform.tfstate"
+          ENV="${{ inputs.environment }}"
+          terraform init -backend-config="key=infrastructure/${ENV}/terraform.tfstate"
 
           echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
           echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
