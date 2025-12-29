@@ -53,10 +53,20 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ inputs.aws_region }}
     
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+        terraform_wrapper: false
+    
     - name: Get infrastructure outputs
       id: infra
       run: |
         cd infrastructure
+        terraform init
+        if [ "${{ inputs.environment }}" != "prod" ]; then
+          terraform workspace select ${{ inputs.environment }} 2>/dev/null || terraform workspace new ${{ inputs.environment }}
+        fi
         echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
         echo "admin_bucket=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
     
