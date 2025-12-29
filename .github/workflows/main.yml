@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
-      aws_region: ${{ steps.set-env.outputs.aws_region }}
+      aws-region: ${{ steps.set-env.outputs.aws-region }}
     steps:
       - uses: actions/checkout@v4
       
@@ -25,7 +25,7 @@ jobs:
           else
             echo "environment=test" >> $GITHUB_OUTPUT
           fi
-          echo "aws_region=us-east-1" >> $GITHUB_OUTPUT
+          echo "aws-region=us-east-1" >> $GITHUB_OUTPUT
       
       - name: Security scan
         run: echo "🔒 Security scan passed"
@@ -35,7 +35,7 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     with:
       environment: ${{ needs.setup.outputs.environment }}
-      aws-region: ${{ needs.setup.outputs.aws_region }}
+      aws-region: ${{ needs.setup.outputs.aws-region }}
     secrets: inherit
 
   infrastructure:
@@ -44,7 +44,7 @@ jobs:
     uses: ./.github/workflows/infrastructure.yml
     with:
       environment: ${{ needs.setup.outputs.environment }}
-      aws-region: ${{ needs.setup.outputs.aws_region }}
+      aws-region: ${{ needs.setup.outputs.aws-region }}
     secrets: inherit
 
   web-app:
@@ -53,7 +53,7 @@ jobs:
     uses: ./.github/workflows/web-app.yml
     with:
       environment: ${{ needs.setup.outputs.environment }}
-      aws-region: ${{ needs.setup.outputs.aws_region }}
+      aws-region: ${{ needs.setup.outputs.aws-region }}
       api_url: ${{ needs.infrastructure.outputs.api_url }}
       frontend_bucket: ${{ needs.infrastructure.outputs.s3-frontend-bucket }}
       admin_bucket: ${{ needs.infrastructure.outputs.s3-admin-bucket }}
