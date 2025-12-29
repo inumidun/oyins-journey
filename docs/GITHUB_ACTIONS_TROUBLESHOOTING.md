@@ -1,5 +1,70 @@
 # GitHub Actions Troubleshooting Guide
 
+## 🚀 **Remote State Backend Issues (NEW)**
+
+### **1. Backend Initialization Failures**
+
+**Problem**: S3 backend bucket doesn't exist
+```
+Error: Failed to get existing workspaces: S3 bucket does not exist
+```
+
+**Solution**: Ensure bootstrap script runs first
+```yaml
+- name: Bootstrap backend (if needed)
+  run: |
+    aws s3api head-bucket --bucket oyins-journey-terraform-state >/dev/null 2>&1 || {
+      echo "🚀 Creating Terraform backend..."
+      chmod +x bootstrap.sh
+      ./bootstrap.sh
+    }
+```
+
+### **2. State Lock Conflicts**
+
+**Problem**: DynamoDB lock table issues
+```
+Error: Error acquiring the state lock
+```
+
+**Solutions**:
+1. **Wait**: Locks usually release automatically
+2. **Force unlock**: `terraform force-unlock LOCK_ID`
+3. **Check table**: Verify DynamoDB table exists
+
+### **3. Backend Configuration Conflicts**
+
+**Problem**: Hardcoded backend key conflicts with dynamic key
+```hcl
+# ❌ Wrong - hardcoded key
+terraform {
+  backend "s3" {
+    key = "infrastructure/terraform.tfstate"
+  }
+}
+
+# ✅ Correct - dynamic key
+terraform {
+  backend "s3" {
+    # key set via -backend-config
+  }
+}
+```
+
+**Solution**: Remove hardcoded key, use `-backend-config`
+
+### **4. State Migration Issues**
+
+**Problem**: Existing resources not in remote state
+```
+Error: resource already exists
+```
+
+**Solution**: Run migration script before deployment
+```bash
+./infrastructure/migrate.sh dev
+```
+
 ## 🚨 **Common Startup Failures & Solutions**
 
 ### **1. Workflow Configuration Issues**
@@ -106,21 +171,35 @@ pull_request:
 
 ## 🔧 **Debugging Steps**
 
-### **Step 1: Check Workflow Syntax**
+### **Step 1: Check Backend Status**
+```bash
+# Verify backend resources exist
+aws s3api head-bucket --bucket oyins-journey-terraform-state
+aws dynamodb describe-table --table-name oyins-journey-terraform-locks
+```
+
+### **Step 2: Test State Access**
+```bash
+# Test backend connectivity
+terraform init -backend-config="key=test/terraform.tfstate"
+terraform workspace list
+```
+
+### **Step 3: Check Workflow Syntax**
 ```bash
 # Validate YAML syntax
 python -c "import yaml; yaml.safe_load(open('.github/workflows/main.yml'))"
 ```
 
-### **Step 2: Verify Action Versions**
+### **Step 4: Verify Action Versions**
 - Check [GitHub Actions Marketplace](https://github.com/marketplace/actions/) for latest versions
 - Update to latest stable releases
 
-### **Step 3: Check Repository Settings**
+### **Step 5: Check Repository Settings**
 - **Settings** → **Actions** → **General**
 - Ensure "Allow all actions and reusable workflows" is selected
 
-### **Step 4: Enable Debug Logging**
+### **Step 6: Enable Debug Logging**
 Add to workflow environment:
 ```yaml
 env:
@@ -128,11 +207,15 @@ env:
   ACTIONS_STEP_DEBUG: true
 ```
 
-### **Step 5: Check GitHub Status**
-- Visit [githubstatus.com](https://githubstatus.com) for service outages
-
 ## 📋 **Checklist for New Workflows**
 
+### **Backend Requirements**
+- [ ] S3 backend bucket exists
+- [ ] DynamoDB locks table exists
+- [ ] Backend configuration has no hardcoded key
+- [ ] Bootstrap step included in workflow
+
+### **Workflow Configuration**
 - [ ] All required inputs defined in `workflow_call`
 - [ ] Latest action versions used
 - [ ] Proper step ordering (init before validate)
@@ -143,6 +226,14 @@ env:
 
 ## 🎯 **Quick Fixes Applied**
 
+### **Remote State Backend (Latest)**
+1. ✅ Implemented S3 remote backend
+2. ✅ Created bootstrap and migration scripts
+3. ✅ Removed hardcoded backend keys
+4. ✅ Added automatic backend creation
+5. ✅ Eliminated import step workarounds
+
+### **Previous Fixes**
 1. ✅ Updated all action versions to latest
 2. ✅ Added missing workflow inputs
 3. ✅ Removed environment protection
@@ -150,4 +241,4 @@ env:
 5. ✅ Removed duplicate files
 6. ✅ Standardized branch targeting
 
-**Result**: Workflows now start and execute successfully! 🚀
+**Result**: Workflows now use proper remote state management! 🚀

@@ -69,6 +69,7 @@ Comprehensive documentation is available in the [`docs/`](./docs/) folder:
 
 ### Setup & Deployment
 - [AWS Setup Guide](./docs/AWS_SETUP.md) - AWS account configuration
+- [Backend Setup Guide](./docs/BACKEND_SETUP.md) - **Remote state backend setup**
 - [GitHub Actions Setup](./docs/GITHUB_ACTIONS_SETUP.md) - CI/CD pipeline setup
 - [Deployment Runbook](./docs/DEPLOYMENT_RUNBOOK.md) - Step-by-step deployment
 - [Manual Setup](./docs/MANUAL_SETUP.md) - Manual deployment instructions
@@ -114,10 +115,11 @@ git push origin main  # Auto-deploys to production
 
 ## 🔒 **Security & Compliance**
 
+- ✅ **Remote State Management** - S3 backend with DynamoDB locking
 - ✅ Private S3 buckets with CloudFront OAC
 - ✅ IAM roles with least privilege
 - ✅ Security scanning in CI/CD pipeline
-- ✅ Environment isolation
+- ✅ Environment isolation with separate state files
 - ✅ AWS Well-Architected Framework compliance
 
 ---

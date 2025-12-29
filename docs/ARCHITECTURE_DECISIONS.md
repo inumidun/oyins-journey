@@ -112,50 +112,91 @@ if: |
 
 ---
 
-## ADR-004: Terraform Workspace Strategy
+## ADR-004: Remote State Backend with S3
 
 **Date**: 2024-12-19  
 **Status**: Accepted  
 **Decision Makers**: Development Team
 
 ### Context
-Need to manage multiple environments with Terraform while maintaining state isolation.
+Initial Terraform setup used local state files and workspaces, leading to state management issues, resource conflicts, and complex import procedures in CI/CD.
 
 ### Decision
-Use Terraform workspaces for environment isolation:
-- `default` workspace for production (`main` branch)
-- `dev` workspace for development (`dev` branch)
-- `test` workspace for testing (`test` branch)
+Implement remote state backend using S3 with DynamoDB locking:
+- S3 bucket: `oyins-journey-terraform-state`
+- DynamoDB table: `oyins-journey-terraform-locks`
+- Environment-specific state keys: `infrastructure/{env}/terraform.tfstate`
 
 ### Rationale
-- **State Isolation**: Each environment has separate state files
-- **Resource Naming**: Environment-specific resource names prevent conflicts
-- **Cost Management**: Easy to track resources per environment
-- **AWS Best Practice**: Proper environment separation
+- **State Management**: Centralized, versioned state storage
+- **Collaboration**: Multiple developers can work safely
+- **Locking**: DynamoDB prevents concurrent modifications
+- **Environment Isolation**: Separate state files per environment
+- **AWS Best Practice**: Recommended Terraform backend pattern
+- **Eliminates Import Issues**: Proper state tracking prevents resource conflicts
 
 ### Implementation
 ```hcl
-# Environment-specific naming
-locals {
-  name_prefix = "${var.project_name}-${var.environment}"
-}
-
-# No default environment value - explicit targeting required
-variable "environment" {
-  description = "Environment (dev, test, prod)"
-  type        = string
-  # No default - must be explicitly provided
+terraform {
+  backend "s3" {
+    bucket         = "oyins-journey-terraform-state"
+    region         = "us-east-1"
+    dynamodb_table = "oyins-journey-terraform-locks"
+    encrypt        = true
+    # key set dynamically: infrastructure/{env}/terraform.tfstate
+  }
 }
 ```
 
+### Migration Strategy
+1. Bootstrap backend resources with `bootstrap.sh`
+2. Migrate existing state with `migrate.sh {env}`
+3. Update workflows to use environment-specific keys
+4. Remove workspace-based logic
+
 ### Consequences
-- **Positive**: Clean environment separation, no resource conflicts
-- **Negative**: Must manage multiple state files
-- **Trade-off**: Accepted complexity for proper isolation
+- **Positive**: Proper state management, no more import steps, team collaboration
+- **Negative**: Additional AWS resources (S3 + DynamoDB)
+- **Cost**: Minimal (~$1/month for state storage)
+- **Trade-off**: Small cost for significant operational improvement
 
 ---
 
-## ADR-005: Security-First CI/CD Pipeline
+## ADR-005: Environment-Specific State Keys
+
+**Date**: 2024-12-19  
+**Status**: Accepted  
+**Decision Makers**: Development Team
+
+### Context
+Terraform workspaces created complexity in CI/CD and didn't provide clear environment separation.
+
+### Decision
+Replace workspaces with environment-specific state keys:
+- Dev: `infrastructure/dev/terraform.tfstate`
+- Test: `infrastructure/test/terraform.tfstate`  
+- Prod: `infrastructure/prod/terraform.tfstate`
+
+### Rationale
+- **Simplicity**: No workspace management in CI/CD
+- **Clarity**: Explicit state file per environment
+- **Isolation**: Complete separation of environment state
+- **Debugging**: Easier to inspect specific environment state
+
+### Implementation
+```bash
+# Dynamic backend configuration in CI/CD
+terraform init -backend-config="key=infrastructure/${{ inputs.environment }}/terraform.tfstate"
+```
+
+### Consequences
+- **Positive**: Simplified workflows, better isolation
+- **Negative**: Must specify backend config in each init
+- **Trade-off**: Slight verbosity for operational clarity
+
+---
+
+## ADR-006: Security-First CI/CD Pipeline
 
 **Date**: 2024-12-19  
 **Status**: Accepted  
@@ -193,7 +234,7 @@ Implement comprehensive security scanning:
 
 ---
 
-## ADR-006: Python 3.13 for Lambda Functions
+## ADR-007: Python 3.13 for Lambda Functions
 
 **Date**: 2024-12-19  
 **Status**: Accepted  
@@ -218,7 +259,7 @@ Use Python 3.13 (latest available version).
 
 ---
 
-## ADR-007: Conditional Deployment Strategy
+## ADR-008: Conditional Deployment Strategy
 
 **Date**: 2024-12-19  
 **Status**: Accepted  
@@ -254,7 +295,7 @@ if: |
 
 ---
 
-## ADR-008: No Default Environment Values
+## ADR-009: No Default Environment Values
 
 **Date**: 2024-12-19  
 **Status**: Accepted  
