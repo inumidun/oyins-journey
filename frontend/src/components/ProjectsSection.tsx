@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ExternalLink, Github, Globe, GitBranch, CheckCircle, Clock, Loader2 } from 'lucide-react';
+import { ExternalLink, Github, Play, BarChart3, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { projectsApi, Project } from '@/services/api';
 
@@ -7,16 +7,12 @@ const ProjectsSection = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const params: any = {};
-        if (statusFilter !== 'all') params.status = statusFilter;
-        
-        const response = await projectsApi.getAll(params);
+        const response = await projectsApi.getAll();
         setProjects(response.projects || response || []);
       } catch (err) {
         setError('Failed to load projects');
@@ -27,25 +23,7 @@ const ProjectsSection = () => {
     };
 
     fetchProjects();
-  }, [statusFilter]);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="w-4 h-4 text-success" />;
-      case 'active': return <Clock className="w-4 h-4 text-warning" />;
-      case 'planned': return <GitBranch className="w-4 h-4 text-info" />;
-      default: return <Clock className="w-4 h-4 text-muted-foreground" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-success/10 text-success border-success/30';
-      case 'active': return 'bg-warning/10 text-warning border-warning/30';
-      case 'planned': return 'bg-info/10 text-info border-info/30';
-      default: return 'bg-muted/10 text-muted-foreground border-muted/30';
-    }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -80,114 +58,79 @@ const ProjectsSection = () => {
             /projects
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Project <span className="gradient-text">Portfolio</span>
+            Proof by <span className="gradient-text">Link</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Real projects with live deployments, source code, and architectural decisions. 
-            Each project demonstrates specific technical capabilities.
+            No screenshots, no claims. Every project links to live proof — repos, demos, pipelines, and dashboards.
           </p>
         </div>
 
-        {/* Filter */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Filter by status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-secondary border border-border rounded-md text-sm focus:outline-none focus:border-primary transition-colors"
-            >
-              <option value="all">All Projects</option>
-              <option value="completed">Completed</option>
-              <option value="active">Active</option>
-              <option value="planned">Planned</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Projects grid */}
-        <div className="max-w-4xl mx-auto space-y-6">
-          {projects.map((project) => (
+        <div className="max-w-5xl mx-auto space-y-6">
+          {projects.map((project, index) => (
             <div
               key={project.id}
-              className="bg-card border border-border rounded-lg p-6 card-hover group"
+              className="bg-card border border-border rounded-xl overflow-hidden card-hover slide-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-semibold text-foreground">{project.name}</h3>
-                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full border text-xs ${getStatusColor(project.status)}`}>
-                      {getStatusIcon(project.status)}
-                      <span className="capitalize">{project.status}</span>
+              <div className="p-6 md:p-8">
+                <div className="flex flex-col md:flex-row md:items-start gap-6">
+                  {/* Main content */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h3 className="text-xl font-bold text-foreground">{project.name}</h3>
+                      <span className="text-xs font-mono text-muted-foreground">{project.start_date}</span>
+                    </div>
+                    <p className="text-muted-foreground mb-4">{project.description}</p>
+
+                    {/* Tech stack */}
+                    {project.technologies && project.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {project.technologies.map((tech) => (
+                          <span
+                            key={tech}
+                            className="px-2 py-1 rounded text-xs bg-secondary text-secondary-foreground font-mono"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Status */}
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-2 py-1 rounded text-xs bg-primary/10 text-primary font-mono capitalize">
+                        {project.status}
+                      </span>
                     </div>
                   </div>
-                  <p className="text-muted-foreground mb-4">{project.description}</p>
-                </div>
-              </div>
 
-              {/* Technologies */}
-              {project.technologies && project.technologies.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs text-muted-foreground mb-2">Technologies:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 rounded bg-secondary text-xs font-mono text-foreground"
-                      >
-                        {tech}
-                      </span>
-                    ))}
+                  {/* Badges and links */}
+                  <div className="flex flex-col gap-4">
+                    {/* Evidence links */}
+                    <div className="flex flex-wrap gap-2">
+                      {project.repository && (
+                        <Button variant="outline" size="sm" className="font-mono text-xs" asChild>
+                          <a href={project.repository} target="_blank" rel="noopener noreferrer">
+                            <Github className="w-3 h-3 mr-1" />
+                            Repo
+                          </a>
+                        </Button>
+                      )}
+                      {project.live_url && (
+                        <Button variant="outline" size="sm" className="font-mono text-xs" asChild>
+                          <a href={project.live_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            Demo
+                          </a>
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              )}
-
-              {/* Project details */}
-              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Start Date</p>
-                  <p className="font-mono text-sm">{project.start_date}</p>
-                </div>
-                {project.end_date && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">End Date</p>
-                    <p className="font-mono text-sm">{project.end_date}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Links */}
-              <div className="flex items-center gap-2 pt-4 border-t border-border">
-                {project.repository && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={project.repository} target="_blank" rel="noopener noreferrer">
-                      <Github className="w-4 h-4 mr-2" />
-                      Source
-                    </a>
-                  </Button>
-                )}
-                {project.live_url && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={project.live_url} target="_blank" rel="noopener noreferrer">
-                      <Globe className="w-4 h-4 mr-2" />
-                      Live Demo
-                    </a>
-                  </Button>
-                )}
-                <Button variant="ghost" size="sm">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Details
-                </Button>
               </div>
             </div>
           ))}
         </div>
-
-        {projects.length === 0 && (
-          <div className="text-center text-muted-foreground">
-            <p>No projects found matching your criteria.</p>
-          </div>
-        )}
       </div>
     </section>
   );

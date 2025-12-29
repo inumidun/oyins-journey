@@ -3,6 +3,7 @@ import HeroSection from '@/components/HeroSection';
 import APIExplorer from '@/components/APIExplorer';
 import SkillsSection from '@/components/SkillsSection';
 import ProjectsSection from '@/components/ProjectsSection';
+import HealthDashboard from '@/components/HealthDashboard';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -14,6 +15,7 @@ const Index = () => {
         <APIExplorer />
         <SkillsSection />
         <ProjectsSection />
+        <HealthDashboard />
       </main>
       <Footer />
     </div>
