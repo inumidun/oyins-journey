@@ -41,6 +41,11 @@ jobs:
         run: |
           cd infrastructure
           ENV="${{ inputs.environment }}"
+          echo "Environment: ${ENV}"
+          if [ -z "${ENV}" ]; then
+            echo "Error: Environment is empty"
+            exit 1
+          fi
           terraform init -backend-config="key=infrastructure/${ENV}/terraform.tfstate"
 
           echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
