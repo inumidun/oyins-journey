@@ -45,14 +45,55 @@ jobs:
           terraform workspace select ${{ inputs.environment }} 2>/dev/null || terraform workspace new ${{ inputs.environment }}
         fi
     
+    - name: Import existing resources if needed
+      working-directory: ./infrastructure
+      run: |
+        echo "🔄 Checking and importing existing resources..."
+        
+        # Import DynamoDB tables if they exist
+        aws dynamodb describe-table --table-name oyins-journey-dev-skills >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.skills oyins-journey-dev-skills || true
+        
+        aws dynamodb describe-table --table-name oyins-journey-dev-projects >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.projects oyins-journey-dev-projects || true
+        
+        aws dynamodb describe-table --table-name oyins-journey-dev-adrs >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.adrs oyins-journey-dev-adrs || true
+        
+        aws dynamodb describe-table --table-name oyins-journey-dev-versions >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.versions oyins-journey-dev-versions || true
+        
+        aws dynamodb describe-table --table-name oyins-journey-dev-certifications >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.certifications oyins-journey-dev-certifications || true
+        
+        # Import IAM role if it exists
+        aws iam get-role --role-name oyins-journey-dev-lambda-role >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.api.aws_iam_role.lambda_role oyins-journey-dev-lambda-role || true
+        
+        # Import S3 buckets if they exist
+        aws s3api head-bucket --bucket oyins-journey-dev-frontend-7436a87e >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_s3_bucket.frontend oyins-journey-dev-frontend-7436a87e || true
+        
+        aws s3api head-bucket --bucket oyins-journey-dev-admin-7436a87e >/dev/null 2>&1 && \
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_s3_bucket.admin oyins-journey-dev-admin-7436a87e || true
+        
+        # Import CloudFront OACs if they exist
+        OAC_FRONTEND_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='oyins-journey-dev-frontend-oac'].Id" --output text)
+        if [ "$OAC_FRONTEND_ID" != "" ] && [ "$OAC_FRONTEND_ID" != "None" ]; then
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_cloudfront_origin_access_control.frontend $OAC_FRONTEND_ID || true
+        fi
+        
+        OAC_ADMIN_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='oyins-journey-dev-admin-oac'].Id" --output text)
+        if [ "$OAC_ADMIN_ID" != "" ] && [ "$OAC_ADMIN_ID" != "None" ]; then
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_cloudfront_origin_access_control.admin $OAC_ADMIN_ID || true
+        fi
+    
     - name: Terraform Security Scan
       working-directory: ./infrastructure
       run: |
         echo "🔍 Running Terraform security scan..."
         # Add tools like tfsec, checkov, or terraform validate
         terraform validate
-    
-    - name: Terraform Plan
       working-directory: ./infrastructure
       run: |
         terraform plan -var-file="config/${{ inputs.environment }}.tfvars" -out=tfplan
