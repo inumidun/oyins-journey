@@ -52,6 +52,36 @@ jobs:
       run: |
         terraform init -backend-config="key=infrastructure/${{ inputs.environment }}/terraform.tfstate"
     
+    - name: Import existing resources
+      working-directory: ./infrastructure
+      run: |
+        echo "🔄 Importing existing resources to remote state..."
+        
+        # Import DynamoDB tables
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.skills oyins-journey-dev-skills || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.projects oyins-journey-dev-projects || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.adrs oyins-journey-dev-adrs || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.versions oyins-journey-dev-versions || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.certifications oyins-journey-dev-certifications || true
+        
+        # Import IAM role
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.api.aws_iam_role.lambda_role oyins-journey-dev-lambda-role || true
+        
+        # Import S3 buckets
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_s3_bucket.frontend oyins-journey-dev-frontend-7436a87e || true
+        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_s3_bucket.admin oyins-journey-dev-admin-7436a87e || true
+        
+        # Import CloudFront OACs
+        OAC_FRONTEND_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='oyins-journey-dev-frontend-oac'].Id" --output text)
+        if [ "$OAC_FRONTEND_ID" != "" ] && [ "$OAC_FRONTEND_ID" != "None" ]; then
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_cloudfront_origin_access_control.frontend $OAC_FRONTEND_ID || true
+        fi
+        
+        OAC_ADMIN_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='oyins-journey-dev-admin-oac'].Id" --output text)
+        if [ "$OAC_ADMIN_ID" != "" ] && [ "$OAC_ADMIN_ID" != "None" ]; then
+          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_cloudfront_origin_access_control.admin $OAC_ADMIN_ID || true
+        fi
+    
     - name: Terraform Plan
       working-directory: ./infrastructure
       run: |
