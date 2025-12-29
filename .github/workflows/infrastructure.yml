@@ -6,52 +6,30 @@ on:
       environment:
         required: true
         type: string
-      aws-region:
+      aws_region:
         required: true
         type: string
-    outputs:
-      api_url:
-        description: "API Gateway URL"
-        value: ${{ jobs.deploy-infrastructure.outputs.api_url }}
-      s3-frontend-bucket:
-        description: "S3 frontend bucket name"
-        value: ${{ jobs.deploy-infrastructure.outputs.s3-frontend-bucket }}
-      s3-admin-bucket:
-        description: "S3 admin bucket name"
-        value: ${{ jobs.deploy-infrastructure.outputs.s3-admin-bucket }}
-      cloudfront_frontend_id:
-        description: "CloudFront frontend distribution ID"
-        value: ${{ jobs.deploy-infrastructure.outputs.cloudfront_frontend_id }}
-      cloudfront_admin_id:
-        description: "CloudFront admin distribution ID"
-        value: ${{ jobs.deploy-infrastructure.outputs.cloudfront_admin_id }}
 
 jobs:
   deploy-infrastructure:
     runs-on: ubuntu-latest
     
     outputs:
-      api_url: ${{ steps.terraform-apply.outputs.api_url }}
       s3-frontend-bucket: ${{ steps.terraform-apply.outputs.s3_bucket_name }}
       s3-admin-bucket: ${{ steps.terraform-apply.outputs.s3_admin_bucket_name }}
-      cloudfront_frontend_id: ${{ steps.terraform-apply.outputs.cloudfront_frontend_id }}
-      cloudfront_admin_id: ${{ steps.terraform-apply.outputs.cloudfront_admin_id }}
+      cloudfront-frontend-url: ${{ steps.terraform-apply.outputs.cloudfront_frontend_url }}
+      cloudfront-admin-url: ${{ steps.terraform-apply.outputs.cloudfront_admin_url }}
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
-    - name: Debug inputs
-      run: |
-        echo "Environment: ${{ inputs.environment }}"
-        echo "AWS Region: ${{ inputs.aws-region }}"
     
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ inputs.aws-region }}
+        aws-region: ${{ inputs.aws_region }}
     
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -83,8 +61,7 @@ jobs:
       working-directory: ./infrastructure
       run: |
         terraform apply -auto-approve tfplan
-        echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
         echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
         echo "s3_admin_bucket_name=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
-        echo "cloudfront_frontend_id=$(terraform output -raw cloudfront_frontend_id)" >> $GITHUB_OUTPUT
-        echo "cloudfront_admin_id=$(terraform output -raw cloudfront_admin_id)" >> $GITHUB_OUTPUT
+        echo "cloudfront_frontend_url=$(terraform output -raw cloudfront_frontend_url)" >> $GITHUB_OUTPUT
+        echo "cloudfront_admin_url=$(terraform output -raw cloudfront_admin_url)" >> $GITHUB_OUTPUT
