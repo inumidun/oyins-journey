@@ -20,22 +20,19 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
-  deploy-backend:
+  infrastructure:
     needs: [security-scan, unit-tests]
     if: always() && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped')
-    uses: ./.github/workflows/deploy-backend.yml
+    uses: ./.github/workflows/infrastructure.yml
     with:
       environment: ${{ github.ref_name }}
       aws_region: us-east-1
     secrets: inherit
 
-  deploy-frontend:
-    needs: [deploy-backend]
-    uses: ./.github/workflows/deploy-frontend.yml
+  web-app:
+    needs: [infrastructure]
+    uses: ./.github/workflows/web-app.yml
     with:
       environment: ${{ github.ref_name }}
       aws_region: us-east-1
-      api-url: ${{ needs.deploy-backend.outputs.api-url }}
-      s3-bucket: ${{ needs.deploy-backend.outputs.s3-bucket }}
-      cloudfront-id: ${{ needs.deploy-backend.outputs.cloudfront-id }}
     secrets: inherit
