@@ -6,7 +6,7 @@ on:
       environment:
         required: true
         type: string
-      aws_region:
+      aws-region:
         required: true
         type: string
 
