@@ -58,11 +58,35 @@ jobs:
         terraform plan -var-file="config/${{ inputs.environment }}.tfvars" -out=tfplan
         terraform show -json tfplan > plan.json
     
+    - name: Check if resources need to be created
+      id: check-resources
+      working-directory: ./infrastructure
+      run: |
+        # Check if plan shows resources to create
+        RESOURCES_TO_CREATE=$(terraform show -json tfplan | jq '.resource_changes[] | select(.change.actions[] == "create") | .address' | wc -l)
+        echo "Resources to create: $RESOURCES_TO_CREATE"
+        if [ "$RESOURCES_TO_CREATE" -gt 0 ]; then
+          echo "apply_needed=true" >> $GITHUB_OUTPUT
+        else
+          echo "apply_needed=false" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Terraform Apply
+      if: steps.check-resources.outputs.apply_needed == 'true'
       id: terraform
       working-directory: ./infrastructure
       run: |
         terraform apply -auto-approve tfplan
+        echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+        echo "s3_admin_bucket_name=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
+        echo "cloudfront_frontend_url=$(terraform output -raw cloudfront_frontend_url)" >> $GITHUB_OUTPUT
+        echo "cloudfront_admin_url=$(terraform output -raw cloudfront_admin_url)" >> $GITHUB_OUTPUT
+    
+    - name: Get existing outputs (if no apply needed)
+      if: steps.check-resources.outputs.apply_needed == 'false'
+      id: terraform
+      working-directory: ./infrastructure
+      run: |
         echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
         echo "s3_admin_bucket_name=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
         echo "cloudfront_frontend_url=$(terraform output -raw cloudfront_frontend_url)" >> $GITHUB_OUTPUT
