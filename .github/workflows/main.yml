@@ -7,28 +7,44 @@ on:
     branches: [test, main]
 
 jobs:
-  security-scan:
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      aws_region: ${{ steps.set-env.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Set environment variables
+        id: set-env
+        run: |
+          if [[ $GITHUB_REF == "refs/heads/main" ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [[ $GITHUB_REF == "refs/heads/dev" ]]; then
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          else
+            echo "environment=test" >> $GITHUB_OUTPUT
+          fi
+          echo "aws_region=us-east-1" >> $GITHUB_OUTPUT
+      
       - name: Security scan
         run: echo "🔒 Security scan passed"
 
   unit-tests:
-    needs: [security-scan]
+    needs: [setup]
     uses: ./.github/workflows/unit-tests.yml
     with:
-      environment: ${{ github.ref_name }}
-      aws_region: us-east-1
+      environment: ${{ needs.setup.outputs.environment }}
+      aws_region: ${{ needs.setup.outputs.aws_region }}
     secrets: inherit
 
   infrastructure:
-    needs: [security-scan, unit-tests]
+    needs: [setup, unit-tests]
     if: always() && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped')
     uses: ./.github/workflows/infrastructure.yml
     with:
-      environment: ${{ github.ref_name }}
-      aws_region: us-east-1
+      environment: ${{ needs.setup.outputs.environment }}
+      aws_region: ${{ needs.setup.outputs.aws_region }}
     secrets: inherit
 
   web-app:
@@ -36,6 +52,6 @@ jobs:
     if: always() && (needs.infrastructure.result == 'success')
     uses: ./.github/workflows/web-app.yml
     with:
-      environment: ${{ github.ref_name }}
-      aws_region: us-east-1
+      environment: ${{ needs.setup.outputs.environment }}
+      aws_region: ${{ needs.setup.outputs.aws_region }}
     secrets: inherit

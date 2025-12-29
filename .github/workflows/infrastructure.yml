@@ -25,22 +25,21 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ inputs.aws_region }}
     
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+      uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: 1.5.0
+        terraform_version: 1.6.0
         terraform_wrapper: false
     
     - name: Bootstrap backend (if needed)
       working-directory: ./infrastructure
       run: |
-        # Check if backend exists, create if not
         aws s3api head-bucket --bucket oyins-journey-terraform-state >/dev/null 2>&1 || {
           echo "🚀 Creating Terraform backend..."
           chmod +x bootstrap.sh
@@ -51,36 +50,6 @@ jobs:
       working-directory: ./infrastructure
       run: |
         terraform init -backend-config="key=infrastructure/${{ inputs.environment }}/terraform.tfstate"
-    
-    - name: Import existing resources
-      working-directory: ./infrastructure
-      run: |
-        echo "🔄 Importing existing resources to remote state..."
-        
-        # Import DynamoDB tables
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.skills oyins-journey-dev-skills || true
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.projects oyins-journey-dev-projects || true
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.adrs oyins-journey-dev-adrs || true
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.versions oyins-journey-dev-versions || true
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.database.aws_dynamodb_table.certifications oyins-journey-dev-certifications || true
-        
-        # Import IAM role
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.api.aws_iam_role.lambda_role oyins-journey-dev-lambda-role || true
-        
-        # Import S3 buckets
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_s3_bucket.frontend oyins-journey-dev-frontend-7436a87e || true
-        terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_s3_bucket.admin oyins-journey-dev-admin-7436a87e || true
-        
-        # Import CloudFront OACs
-        OAC_FRONTEND_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='oyins-journey-dev-frontend-oac'].Id" --output text)
-        if [ "$OAC_FRONTEND_ID" != "" ] && [ "$OAC_FRONTEND_ID" != "None" ]; then
-          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_cloudfront_origin_access_control.frontend $OAC_FRONTEND_ID || true
-        fi
-        
-        OAC_ADMIN_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='oyins-journey-dev-admin-oac'].Id" --output text)
-        if [ "$OAC_ADMIN_ID" != "" ] && [ "$OAC_ADMIN_ID" != "None" ]; then
-          terraform import -var-file="config/${{ inputs.environment }}.tfvars" module.frontend.aws_cloudfront_origin_access_control.admin $OAC_ADMIN_ID || true
-        fi
     
     - name: Terraform Plan
       working-directory: ./infrastructure
@@ -96,8 +65,3 @@ jobs:
         echo "s3_admin_bucket_name=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
         echo "cloudfront_frontend_url=$(terraform output -raw cloudfront_frontend_url)" >> $GITHUB_OUTPUT
         echo "cloudfront_admin_url=$(terraform output -raw cloudfront_admin_url)" >> $GITHUB_OUTPUT
-    
-    - name: Post-deployment validation
-      run: |
-        echo "✅ Validating ${{ inputs.environment }} infrastructure deployment..."
-        # Add infrastructure validation tests
