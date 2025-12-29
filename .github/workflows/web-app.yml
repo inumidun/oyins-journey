@@ -13,58 +13,58 @@ on:
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ inputs.aws_region }}
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.6.0
-        terraform_wrapper: false
-    
-    - name: Get infrastructure outputs
-      id: infra
-      run: |
-        cd infrastructure
-        terraform init -backend-config="key=infrastructure/${{ inputs.environment }}/terraform.tfstate"
-        
-        echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
-        echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
-        echo "admin_bucket=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
-        echo "cloudfront_frontend_id=$(terraform output -raw cloudfront_frontend_id)" >> $GITHUB_OUTPUT
-        echo "cloudfront_admin_id=$(terraform output -raw cloudfront_admin_id)" >> $GITHUB_OUTPUT
-    
-    - name: Install frontend dependencies
-      working-directory: ./frontend
-      run: npm ci
-    
-    - name: Build React app
-      working-directory: ./frontend
-      env:
-        VITE_API_URL: ${{ steps.infra.outputs.api_url }}
-        VITE_ENVIRONMENT: ${{ inputs.environment }}
-      run: npm run build
-    
-    - name: Deploy to S3
-      run: |
-        aws s3 sync frontend/dist/ s3://${{ steps.infra.outputs.frontend_bucket }} --delete
-        aws s3 sync admin/ s3://${{ steps.infra.outputs.admin_bucket }} --delete
-    
-    - name: Invalidate CloudFront
-      run: |
-        aws cloudfront create-invalidation --distribution-id ${{ steps.infra.outputs.cloudfront_frontend_id }} --paths "/*"
-        aws cloudfront create-invalidation --distribution-id ${{ steps.infra.outputs.cloudfront_admin_id }} --paths "/*"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+          terraform_wrapper: false
+
+      - name: Get infrastructure outputs
+        id: infra
+        run: |
+          cd infrastructure
+          terraform init -backend-config="key=infrastructure/${{ inputs.environment }}/terraform.tfstate"
+
+          echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
+          echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+          echo "admin_bucket=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
+          echo "cloudfront_frontend_id=$(terraform output -raw cloudfront_frontend_id)" >> $GITHUB_OUTPUT
+          echo "cloudfront_admin_id=$(terraform output -raw cloudfront_admin_id)" >> $GITHUB_OUTPUT
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build React app
+        working-directory: ./frontend
+        env:
+          VITE_API_URL: ${{ steps.infra.outputs.api_url }}
+          VITE_ENVIRONMENT: ${{ inputs.environment }}
+        run: npm run build
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync frontend/dist/ s3://${{ steps.infra.outputs.frontend_bucket }} --delete
+          aws s3 sync admin/ s3://${{ steps.infra.outputs.admin_bucket }} --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ steps.infra.outputs.cloudfront_frontend_id }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ steps.infra.outputs.cloudfront_admin_id }} --paths "/*"
