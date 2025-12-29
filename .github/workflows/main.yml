@@ -54,4 +54,9 @@ jobs:
     with:
       environment: ${{ needs.setup.outputs.environment }}
       aws_region: ${{ needs.setup.outputs.aws_region }}
+      api_url: ${{ needs.infrastructure.outputs.api_url }}
+      frontend_bucket: ${{ needs.infrastructure.outputs.s3-frontend-bucket }}
+      admin_bucket: ${{ needs.infrastructure.outputs.s3-admin-bucket }}
+      cloudfront_frontend_id: ${{ needs.infrastructure.outputs.cloudfront_frontend_id }}
+      cloudfront_admin_id: ${{ needs.infrastructure.outputs.cloudfront_admin_id }}
     secrets: inherit
