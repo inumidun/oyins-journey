@@ -1,0 +1,99 @@
+name: Deploy Backend
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      aws_region:
+        required: true
+        type: string
+    outputs:
+      api-url:
+        description: "API Gateway URL"
+        value: ${{ jobs.deploy-infrastructure.outputs.api-url }}
+      s3-bucket:
+        description: "S3 bucket name"
+        value: ${{ jobs.deploy-infrastructure.outputs.s3-bucket }}
+      cloudfront-id:
+        description: "CloudFront distribution ID"
+        value: ${{ jobs.deploy-infrastructure.outputs.cloudfront-id }}
+  push:
+    branches: [main, test, dev]
+    paths:
+      - 'infrastructure/**'
+      - 'api/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infrastructure/**'
+      - 'api/**'
+
+env:
+  AWS_REGION: ${{ inputs.aws_region || 'us-east-1' }}
+  TF_VERSION: 1.6.0
+
+jobs:
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    outputs:
+      api-url: ${{ steps.tf-output.outputs.api-url }}
+      s3-bucket: ${{ steps.tf-output.outputs.s3-bucket }}
+      cloudfront-id: ${{ steps.tf-output.outputs.cloudfront-id }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        terraform_wrapper: false
+    
+    - name: Determine environment
+      id: env
+      run: |
+        if [[ "${{ inputs.environment }}" != "" ]]; then
+          echo "environment=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          echo "environment=prod" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
+          echo "environment=test" >> $GITHUB_OUTPUT
+        else
+          echo "environment=dev" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Terraform Init
+      working-directory: ./infrastructure
+      run: terraform init
+    
+    - name: Terraform Plan
+      working-directory: ./infrastructure
+      run: |
+        terraform plan -var="environment=${{ steps.env.outputs.environment }}" \
+                      -var-file="config/${{ steps.env.outputs.environment }}.tfvars"
+    
+    - name: Terraform Apply
+      if: github.event_name == 'push' || github.event_name == 'workflow_call'
+      working-directory: ./infrastructure
+      run: |
+        terraform apply -auto-approve \
+                       -var="environment=${{ steps.env.outputs.environment }}" \
+                       -var-file="config/${{ steps.env.outputs.environment }}.tfvars"
+    
+    - name: Get Terraform Outputs
+      if: github.event_name == 'push' || github.event_name == 'workflow_call'
+      id: tf-output
+      working-directory: ./infrastructure
+      run: |
+        echo "api-url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
+        echo "s3-bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+        echo "cloudfront-id=$(terraform output -raw cloudfront_frontend_id)" >> $GITHUB_OUTPUT

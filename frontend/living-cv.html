@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oyin's Journey - Living Cloud CV</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .api-status {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background: #4CAF50; }
+        .status-offline { background: #f44336; }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .skill-item, .project-item, .cert-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .skill-category {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        
+        .project-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-active { background: #cce5ff; color: #004085; }
+        
+        .cert-expiry {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .expiring-soon { color: #ff6b35; font-weight: bold; }
+        
+        .filters {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .filter-group {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .filter-group label {
+            color: white;
+            margin-right: 8px;
+        }
+        
+        select, button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        
+        button:hover {
+            background: #5a6fd8;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .tech-stack {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+        
+        .tech-stack h3 {
+            margin-bottom: 15px;
+        }
+        
+        .tech-badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .tech-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Oyin's Journey</h1>
+            <p>A Living, Breathing Cloud CV - Real Infrastructure, Real Skills</p>
+        </div>
+        
+        <div class="api-status">
+            <span class="status-indicator status-offline" id="statusIndicator"></span>
+            <span id="statusText">Connecting to API...</span>
+            <span style="float: right; font-size: 0.9rem;" id="apiUrl"></span>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label>Skills Category:</label>
+                <select id="skillsCategory">
+                    <option value="">All Categories</option>
+                    <option value="cloud">Cloud</option>
+                    <option value="programming">Programming</option>
+                    <option value="devops">DevOps</option>
+                    <option value="database">Database</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Cloud Provider:</label>
+                <select id="cloudProvider">
+                    <option value="">All Providers</option>
+                    <option value="aws">AWS</option>
+                    <option value="azure">Azure</option>
+                    <option value="gcp">Google Cloud</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Project Status:</label>
+                <select id="projectStatus">
+                    <option value="">All Projects</option>
+                    <option value="completed">Completed</option>
+                    <option value="active">Active</option>
+                    <option value="planned">Planned</option>
+                </select>
+            </div>
+            <button onclick="loadData()">🔄 Refresh Data</button>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h3>💼 Skills & Technologies</h3>
+                <div id="skillsContent" class="loading">Loading skills...</div>
+            </div>
+            
+            <div class="card">
+                <h3>🏗️ Projects & Experience</h3>
+                <div id="projectsContent" class="loading">Loading projects...</div>
+            </div>
+            
+            <div class="card">
+                <h3>🏆 Certifications</h3>
+                <div id="certificationsContent" class="loading">Loading certifications...</div>
+            </div>
+        </div>
+        
+        <div class="tech-stack">
+            <h3>🛠️ This CV is Built With</h3>
+            <div class="tech-badges">
+                <span class="tech-badge">AWS Lambda</span>
+                <span class="tech-badge">API Gateway</span>
+                <span class="tech-badge">DynamoDB</span>
+                <span class="tech-badge">CloudFront</span>
+                <span class="tech-badge">S3</span>
+                <span class="tech-badge">Terraform</span>
+                <span class="tech-badge">GitHub Actions</span>
+                <span class="tech-badge">Python 3.13</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev'
+            : 'https://api.oyintech.dev';
+        
+        document.getElementById('apiUrl').textContent = API_BASE;
+        
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/skills`);
+                if (response.ok) {
+                    document.getElementById('statusIndicator').className = 'status-indicator status-online';
+                    document.getElementById('statusText').textContent = 'API Online';
+                    return true;
+                }
+            } catch (error) {
+                console.error('API Status Check Failed:', error);
+            }
+            
+            document.getElementById('statusIndicator').className = 'status-indicator status-offline';
+            document.getElementById('statusText').textContent = 'API Offline';
+            return false;
+        }
+        
+        async function loadSkills() {
+            try {
+                const category = document.getElementById('skillsCategory').value;
+                const cloud = document.getElementById('cloudProvider').value;
+                
+                let url = `${API_BASE}/skills`;
+                const params = new URLSearchParams();
+                if (category) params.append('category', category);
+                if (cloud) params.append('cloud', cloud);
+                if (params.toString()) url += `?${params.toString()}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.skills && data.skills.length > 0) {
+                    const html = data.skills.map(skill => `
+                        <div class="skill-item">
+                            <div class="skill-category">${skill.category || 'General'}</div>
+                            <strong>${skill.name}</strong>
+                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
+                                ${skill.technologies ? skill.technologies.join(', ') : ''}
+                            </div>
+                            ${skill.usage_count ? `<div style="font-size: 0.8rem; color: #999;">Used in ${skill.usage_count} projects</div>` : ''}
+                        </div>
+                    `).join('');
+                    document.getElementById('skillsContent').innerHTML = html;
+                } else {
+                    document.getElementById('skillsContent').innerHTML = '<div class="error">No skills found</div>';
+                }
+            } catch (error) {
+                document.getElementById('skillsContent').innerHTML = '<div class="error">Failed to load skills</div>';
+                console.error('Skills loading error:', error);
+            }
+        }
+        
+        async function loadProjects() {
+            try {
+                const status = document.getElementById('projectStatus').value;
+                
+                let url = `${API_BASE}/projects`;
+                if (status) url += `?status=${status}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.projects && data.projects.length > 0) {
+                    const html = data.projects.map(project => `
+                        <div class="project-item">
+                            <strong>${project.name}</strong>
+                            <span class="project-status status-${project.status || 'unknown'}">
+                                ${project.status || 'Unknown'}
+                            </span>
+                            <div style="font-size: 0.9rem; color: #666; margin: 5px 0;">
+                                ${project.description || 'No description available'}
+                            </div>
+                            ${project.technologies ? `<div style="font-size: 0.8rem; color: #999;">Tech: ${project.technologies.join(', ')}</div>` : ''}
+                            ${project.start_date ? `<div style="font-size: 0.8rem; color: #999;">${project.start_date} - ${project.end_date || 'Present'}</div>` : ''}
+                        </div>
+                    `).join('');
+                    document.getElementById('projectsContent').innerHTML = html;
+                } else {
+                    document.getElementById('projectsContent').innerHTML = '<div class="error">No projects found</div>';
+                }
+            } catch (error) {
+                document.getElementById('projectsContent').innerHTML = '<div class="error">Failed to load projects</div>';
+                console.error('Projects loading error:', error);
+            }
+        }
+        
+        async function loadCertifications() {
+            try {
+                const response = await fetch(`${API_BASE}/certifications`);
+                const data = await response.json();
+                
+                if (data.certifications && data.certifications.length > 0) {
+                    const html = data.certifications.map(cert => {
+                        const isExpiringSoon = cert.computed_status === 'expiring_soon';
+                        const isExpired = cert.computed_status === 'expired';
+                        
+                        return `
+                            <div class="cert-item">
+                                <strong>${cert.name}</strong>
+                                <div style="font-size: 0.9rem; color: #666;">${cert.provider || 'Unknown Provider'}</div>
+                                <div class="cert-expiry ${isExpiringSoon ? 'expiring-soon' : ''}">
+                                    ${cert.expiry_date ? 
+                                        (isExpired ? '❌ Expired' : 
+                                         isExpiringSoon ? '⚠️ Expires Soon' : 
+                                         `✅ Valid until ${cert.expiry_date}`) : 
+                                        '✅ No Expiry'}
+                                </div>
+                                ${cert.credential_id ? `<div style="font-size: 0.8rem; color: #999;">ID: ${cert.credential_id}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                    document.getElementById('certificationsContent').innerHTML = html;
+                } else {
+                    document.getElementById('certificationsContent').innerHTML = '<div class="error">No certifications found</div>';
+                }
+            } catch (error) {
+                document.getElementById('certificationsContent').innerHTML = '<div class="error">Failed to load certifications</div>';
+                console.error('Certifications loading error:', error);
+            }
+        }
+        
+        async function loadData() {
+            await checkApiStatus();
+            await Promise.all([
+                loadSkills(),
+                loadProjects(),
+                loadCertifications()
+            ]);
+        }
+        
+        // Event listeners
+        document.getElementById('skillsCategory').addEventListener('change', loadSkills);
+        document.getElementById('cloudProvider').addEventListener('change', loadSkills);
+        document.getElementById('projectStatus').addEventListener('change', loadProjects);
+        
+        // Initial load
+        loadData();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(loadData, 300000);
+    </script>
+</body>
+</html>

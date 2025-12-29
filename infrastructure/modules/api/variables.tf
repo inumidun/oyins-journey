@@ -22,3 +22,23 @@ variable "skills_function_name" {
   description = "Skills Lambda function name"
   type        = string
 }
+
+variable "projects_invoke_arn" {
+  description = "Projects Lambda function invoke ARN"
+  type        = string
+}
+
+variable "projects_function_name" {
+  description = "Projects Lambda function name"
+  type        = string
+}
+
+variable "certifications_invoke_arn" {
+  description = "Certifications Lambda function invoke ARN"
+  type        = string
+}
+
+variable "certifications_function_name" {
+  description = "Certifications Lambda function name"
+  type        = string
+}

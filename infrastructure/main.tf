@@ -78,9 +78,13 @@ module "api" {
     module.database.certifications_table_arn
   ]
   
-  # Skills Lambda only for now
-  skills_invoke_arn     = module.lambda.skills_invoke_arn
-  skills_function_name  = "${local.name_prefix}-skills"
+  # All Lambda functions
+  skills_invoke_arn           = module.lambda.skills_invoke_arn
+  skills_function_name        = module.lambda.skills_function_name
+  projects_invoke_arn         = module.lambda.projects_invoke_arn
+  projects_function_name      = module.lambda.projects_function_name
+  certifications_invoke_arn   = module.lambda.certifications_invoke_arn
+  certifications_function_name = module.lambda.certifications_function_name
 }
 
 # Outputs

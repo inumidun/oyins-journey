@@ -2,106 +2,72 @@ import json
 import boto3
 import os
 import logging
+from datetime import datetime, timedelta
 from typing import Dict, Any, List
 from botocore.exceptions import ClientError
 
-# Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Initialize DynamoDB resource
 dynamodb = boto3.resource('dynamodb')
 table_name = os.environ.get('CERTIFICATIONS_TABLE')
-
-if not table_name:
-    logger.error("CERTIFICATIONS_TABLE environment variable not set")
-    raise ValueError("CERTIFICATIONS_TABLE environment variable is required")
-
 certifications_table = dynamodb.Table(table_name)
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """
-    AWS Lambda handler for certifications API endpoints.
-    
-    Supports:
-    - GET /certifications - List all certifications
-    - GET /certifications?provider={provider} - Filter by provider
-    - GET /certifications?status={status} - Filter by status
-    
-    Args:
-        event: API Gateway event
-        context: Lambda context
-        
-    Returns:
-        API Gateway response
-    """
     try:
-        # Log the incoming request
-        logger.info(f"Processing request: {json.dumps(event, default=str)}")
+        logger.info(f"Processing certifications request: {json.dumps(event, default=str)}")
         
-        # Parse query parameters
         query_params = event.get('queryStringParameters') or {}
-        provider_filter = query_params.get('provider')
-        status_filter = query_params.get('status')
+        provider = query_params.get('provider')
+        status = query_params.get('status')  # active, expired, expiring_soon
         
-        # Get all certifications
         response = certifications_table.scan()
         certifications = response.get('Items', [])
         
-        # Apply filters
-        if provider_filter:
-            certifications = [c for c in certifications if c.get('provider', '').lower() == provider_filter.lower()]
+        # Add status based on expiry date
+        current_date = datetime.now().date()
+        for cert in certifications:
+            if cert.get('expiry_date'):
+                expiry = datetime.strptime(cert['expiry_date'], '%Y-%m-%d').date()
+                if expiry < current_date:
+                    cert['computed_status'] = 'expired'
+                elif expiry < current_date + timedelta(days=90):
+                    cert['computed_status'] = 'expiring_soon'
+                else:
+                    cert['computed_status'] = 'active'
+            else:
+                cert['computed_status'] = 'no_expiry'
         
-        if status_filter:
-            certifications = [c for c in certifications if c.get('status', '').lower() == status_filter.lower()]
+        # Filter by provider if specified
+        if provider:
+            certifications = [c for c in certifications if 
+                            c.get('provider', '').lower() == provider.lower()]
         
-        # Sort by earned_date (newest first)
-        certifications.sort(key=lambda x: x.get('earned_date', ''), reverse=True)
+        # Filter by status if specified
+        if status:
+            certifications = [c for c in certifications if 
+                            c.get('computed_status') == status]
+        
+        # Sort by issue date (most recent first)
+        certifications.sort(key=lambda x: x.get('issue_date', ''), reverse=True)
         
         return {
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
+                'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
                 'certifications': certifications,
                 'count': len(certifications),
-                'filters': {
-                    'provider': provider_filter,
-                    'status': status_filter
-                }
+                'filters': {'provider': provider, 'status': status}
             })
         }
         
-    except ClientError as e:
-        logger.error(f"DynamoDB error: {e}")
-        return _error_response(500, "Database error occurred")
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        return _error_response(500, "Internal server error")
-
-def _error_response(status_code: int, message: str) -> Dict[str, Any]:
-    """
-    Create standardized error response.
-    
-    Args:
-        status_code: HTTP status code
-        message: Error message
-        
-    Returns:
-        API Gateway error response
-    """
-    return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        'body': json.dumps({
-            'error': message,
-            'timestamp': 'context.aws_request_id'
-        })
-    }
+        logger.error(f"Error: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Internal server error'})
+        }
