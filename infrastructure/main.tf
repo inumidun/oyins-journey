@@ -51,19 +51,48 @@ module "frontend" {
   environment = var.environment
 }
 
+# Lambda Module
+module "lambda" {
+  source = "./modules/lambda"
+  
+  name_prefix      = local.name_prefix
+  environment      = var.environment
+  lambda_role_arn  = module.api.lambda_role_arn
+}
+
 # API Module
 module "api" {
   source = "./modules/api"
   
-  name_prefix = local.name_prefix
-  environment = var.environment
-  dynamodb_table_arns = [
+  name_prefix           = local.name_prefix
+  environment           = var.environment
+  dynamodb_table_arns   = [
     module.database.skills_table_arn,
     module.database.projects_table_arn,
     module.database.adrs_table_arn,
     module.database.versions_table_arn,
     module.database.certifications_table_arn
   ]
+  
+  # Skills Lambda
+  skills_invoke_arn     = module.lambda.skills_invoke_arn
+  skills_function_name  = "${local.name_prefix}-skills"
+  
+  # Projects Lambda
+  projects_invoke_arn     = module.lambda.projects_invoke_arn
+  projects_function_name  = "${local.name_prefix}-projects"
+  
+  # Certifications Lambda
+  certifications_invoke_arn     = module.lambda.certifications_invoke_arn
+  certifications_function_name  = "${local.name_prefix}-certifications"
+  
+  # ADRs Lambda
+  adrs_invoke_arn     = module.lambda.adrs_invoke_arn
+  adrs_function_name  = "${local.name_prefix}-adrs"
+  
+  # Version Lambda
+  version_invoke_arn     = module.lambda.version_invoke_arn
+  version_function_name  = "${local.name_prefix}-version"
 }
 
 # Outputs
@@ -85,4 +114,12 @@ output "cloudfront_frontend_url" {
 
 output "cloudfront_admin_url" {
   value = module.frontend.cloudfront_admin_url
+}
+
+output "cloudfront_frontend_id" {
+  value = module.frontend.cloudfront_frontend_id
+}
+
+output "cloudfront_admin_id" {
+  value = module.frontend.cloudfront_admin_id
 }

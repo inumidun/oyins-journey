@@ -26,12 +26,16 @@ jobs:
     - name: Package Lambda functions
       run: |
         cd api
-        zip -r skills.zip skills.py
-        zip -r projects.zip projects.py
-        zip -r certifications.zip certifications.py
-        zip -r adrs.zip adrs.py
-        zip -r version.zip version.py
-        zip -r admin.zip admin.py
+        # Create zip files for each Lambda function
+        zip skills.zip skills.py
+        zip projects.zip projects.py
+        zip certifications.zip certifications.py
+        zip adrs.zip adrs.py
+        zip version.zip version.py
+        zip admin.zip admin.py
+        
+        # Move zip files to infrastructure directory for Terraform
+        mv *.zip ../infrastructure/
     
     - name: Deploy Lambda functions
       run: |
@@ -63,18 +67,13 @@ jobs:
       id: infra
       run: |
         cd infrastructure
-        terraform init -reconfigure
-        if [ "${{ inputs.environment }}" != "prod" ]; then
-          terraform workspace select ${{ inputs.environment }} 2>/dev/null || terraform workspace new ${{ inputs.environment }}
-        fi
-        # Verify outputs exist before using them
-        if terraform output s3_bucket_name >/dev/null 2>&1; then
-          echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
-          echo "admin_bucket=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
-        else
-          echo "Error: Terraform outputs not found. Infrastructure may not be deployed."
-          exit 1
-        fi
+        terraform init -backend-config="key=infrastructure/${{ inputs.environment }}/terraform.tfstate"
+        
+        # Get outputs from remote state
+        echo "frontend_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+        echo "admin_bucket=$(terraform output -raw s3_admin_bucket_name)" >> $GITHUB_OUTPUT
+        echo "cloudfront_frontend_id=$(terraform output -raw cloudfront_frontend_id)" >> $GITHUB_OUTPUT
+        echo "cloudfront_admin_id=$(terraform output -raw cloudfront_admin_id)" >> $GITHUB_OUTPUT
     
     - name: Deploy to S3
       run: |
@@ -83,5 +82,6 @@ jobs:
     
     - name: Invalidate CloudFront
       run: |
-        # Get CloudFront distribution IDs and invalidate cache
-        echo "CloudFront invalidation would happen here"
+        # Invalidate CloudFront distributions
+        aws cloudfront create-invalidation --distribution-id ${{ steps.infra.outputs.cloudfront_frontend_id }} --paths "/*"
+        aws cloudfront create-invalidation --distribution-id ${{ steps.infra.outputs.cloudfront_admin_id }} --paths "/*"

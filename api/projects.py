@@ -1,9 +1,12 @@
 import json
 import boto3
+import os
 from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb')
-projects_table = dynamodb.Table('oyins-journey-projects')
+# Use environment variable for table name (no hardcoded environment)
+table_name = os.environ.get('PROJECTS_TABLE', 'oyins-journey-projects')
+projects_table = dynamodb.Table(table_name)
 
 def lambda_handler(event, context):
     try:
