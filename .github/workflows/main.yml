@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
 
   web-app:
-    needs: [infrastructure]
+    needs: [setup, infrastructure]
     if: always() && (needs.infrastructure.result == 'success')
     uses: ./.github/workflows/web-app.yml
     with:
