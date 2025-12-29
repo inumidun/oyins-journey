@@ -17,6 +17,9 @@ jobs:
   unit-tests:
     needs: [security-scan]
     uses: ./.github/workflows/unit-tests.yml
+    with:
+      environment: ${{ github.ref_name }}
+      aws_region: us-east-1
     secrets: inherit
 
   infrastructure:
