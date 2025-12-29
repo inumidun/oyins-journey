@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ExternalLink, Github, Play, BarChart3, CheckCircle2, Loader2 } from 'lucide-react';
+import { ExternalLink, Github, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { projectsApi, Project } from '@/services/api';
 
