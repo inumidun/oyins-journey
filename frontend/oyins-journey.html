@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oyin's Journey - Explore My Skills & Experience</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #232f3e;
+        }
+        
+        .search-bar {
+            flex: 1;
+            max-width: 600px;
+            margin: 0 20px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 2px solid #febd69;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 45px;
+            background: #febd69;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Categories */
+        .categories {
+            background: #232f3e;
+            color: white;
+            padding: 10px 0;
+        }
+        
+        .categories-nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 30px;
+        }
+        
+        .category-link {
+            color: white;
+            text-decoration: none;
+            padding: 5px 0;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+        
+        .category-link:hover, .category-link.active {
+            border-bottom-color: #febd69;
+        }
+        
+        /* Main content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+        
+        /* Sidebar filters */
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            height: fit-content;
+            position: sticky;
+            top: 80px;
+        }
+        
+        .filter-section {
+            margin-bottom: 25px;
+        }
+        
+        .filter-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #232f3e;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        
+        .filter-option input {
+            margin: 0;
+        }
+        
+        /* Main content area */
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .results-count {
+            color: #666;
+        }
+        
+        .sort-options select {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* Product grid */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .item-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            transition: box-shadow 0.3s, transform 0.2s;
+            cursor: pointer;
+        }
+        
+        .item-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .item-title {
+            font-weight: bold;
+            color: #0066c0;
+            margin-bottom: 5px;
+        }
+        
+        .item-category {
+            background: #e7f3ff;
+            color: #0066c0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .item-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .item-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .tag {
+            background: #f0f0f0;
+            color: #666;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+        
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .rating {
+            color: #ff9900;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #dc2626;
+            margin: 20px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+            
+            .nav {
+                flex-direction: column;
+                height: auto;
+                padding: 10px 20px;
+            }
+            
+            .search-bar {
+                margin: 10px 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with search -->    
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">Oyin's Journey</div>
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Search skills, projects, technologies..." id="searchInput">
+                <button class="search-btn" onclick="performSearch()">🔍</button>
+            </div>
+            <div class="api-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">API: Connecting...</span>
+            </div>
+        </nav>
+        
+        <!-- Categories navigation -->
+        <div class="categories">
+            <nav class="categories-nav">
+                <a href="javascript:void(0)" class="category-link active" onclick="showCategory('all')">All Items</a>
+                <a href="javascript:void(0)" class="category-link" onclick="showCategory('skills')">Skills & Technologies</a>
+                <a href="javascript:void(0)" class="category-link" onclick="showCategory('projects')">Projects & Experience</a>
+                <a href="javascript:void(0)" class="category-link" onclick="showCategory('certifications')">Certifications</a>
+                <a href="javascript:void(0)" class="category-link" onclick="showCategory('architecture')">Architecture Decisions</a>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Sidebar filters -->
+        <aside class="sidebar">
+            <div class="filter-section">
+                <div class="filter-title">Category</div>
+                <div class="filter-option">
+                    <input type="checkbox" id="cloud" checked>
+                    <label for="cloud">Cloud (12)</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="programming" checked>
+                    <label for="programming">Programming (8)</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="devops" checked>
+                    <label for="devops">DevOps (15)</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="database" checked>
+                    <label for="database">Database (6)</label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-title">Experience Level</div>
+                <div class="filter-option">
+                    <input type="checkbox" id="expert" checked>
+                    <label for="expert">Expert (5+ years)</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="advanced" checked>
+                    <label for="advanced">Advanced (3-5 years)</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="intermediate" checked>
+                    <label for="intermediate">Intermediate (1-3 years)</label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-title">Cloud Provider</div>
+                <div class="filter-option">
+                    <input type="checkbox" id="aws" checked>
+                    <label for="aws">AWS</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="azure" checked>
+                    <label for="azure">Azure</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="gcp" checked>
+                    <label for="gcp">Google Cloud</label>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="main-content">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount">Loading items...</div>
+                <div class="sort-options">
+                    <select id="sortBy">
+                        <option value="relevance">Sort by: Relevance</option>
+                        <option value="experience">Experience Level</option>
+                        <option value="recent">Most Recent</option>
+                        <option value="alphabetical">A to Z</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="items-grid" id="itemsGrid">
+                <div class="loading">Loading your experience...</div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        const API_BASE = 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev';
+        let allItems = [];
+        let currentCategory = 'all';
+        
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/skills`);
+                if (response.ok) {
+                    document.getElementById('statusText').textContent = 'API: Online';
+                    return true;
+                }
+            } catch (error) {
+                console.error('API Status Check Failed:', error);
+            }
+            
+            document.getElementById('statusText').textContent = 'API: Offline';
+            return false;
+        }
+        
+        async function loadAllData() {
+            try {
+                const [skillsRes, projectsRes, certsRes] = await Promise.all([
+                    fetch(`${API_BASE}/skills`),
+                    fetch(`${API_BASE}/projects`),
+                    fetch(`${API_BASE}/certifications`)
+                ]);
+                
+                const [skillsData, projectsData, certsData] = await Promise.all([
+                    skillsRes.json(),
+                    projectsRes.json(),
+                    certsRes.json()
+                ]);
+                
+                allItems = [];
+                
+                // Add skills
+                if (skillsData.skills) {
+                    skillsData.skills.forEach(skill => {
+                        allItems.push({
+                            type: 'skill',
+                            id: skill.id || skill.name,
+                            title: skill.name,
+                            category: skill.category || 'General',
+                            description: `${skill.years_experience || 'N/A'} years experience • ${skill.proficiency || 'Proficient'} level`,
+                            tags: skill.technologies || [],
+                            rating: skill.proficiency === 'Expert' ? 5 : skill.proficiency === 'Advanced' ? 4 : 3,
+                            experience: skill.years_experience || 0,
+                            usageCount: skill.usage_count || 0
+                        });
+                    });
+                }
+                
+                // Add projects
+                if (projectsData.projects) {
+                    projectsData.projects.forEach(project => {
+                        allItems.push({
+                            type: 'project',
+                            id: project.id || project.name,
+                            title: project.name,
+                            category: 'Project',
+                            description: project.description || 'No description available',
+                            tags: project.technologies || [],
+                            status: project.status,
+                            startDate: project.start_date,
+                            endDate: project.end_date
+                        });
+                    });
+                }
+                
+                // Add certifications
+                if (certsData.certifications) {
+                    certsData.certifications.forEach(cert => {
+                        allItems.push({
+                            type: 'certification',
+                            id: cert.id || cert.name,
+                            title: cert.name,
+                            category: 'Certification',
+                            description: `Issued by ${cert.provider || 'Unknown'} • ${cert.computed_status || 'Active'}`,
+                            tags: [cert.provider || 'Unknown'],
+                            status: cert.computed_status,
+                            issueDate: cert.issue_date,
+                            expiryDate: cert.expiry_date
+                        });
+                    });
+                }
+                
+                displayItems(allItems);
+                updateResultsCount(allItems.length);
+                
+            } catch (error) {
+                document.getElementById('itemsGrid').innerHTML = '<div class="error">Failed to load data</div>';
+                console.error('Data loading error:', error);
+            }
+        }
+        
+        function displayItems(items) {
+            const grid = document.getElementById('itemsGrid');
+            
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="error">No items found matching your criteria</div>';
+                return;
+            }
+            
+            const html = items.map(item => {
+                const typeIcon = {
+                    'skill': '🛠️',
+                    'project': '🏗️',
+                    'certification': '🏆'
+                }[item.type] || '📄';
+                
+                const statusColor = {
+                    'completed': '#28a745',
+                    'active': '#007bff',
+                    'planned': '#ffc107',
+                    'Expert': '#28a745',
+                    'Advanced': '#007bff',
+                    'Intermediate': '#ffc107'
+                }[item.status] || '#6c757d';
+                
+                return `
+                    <div class="item-card" onclick="viewItem('${item.id}', '${item.type}')">
+                        <div class="item-header">
+                            <div>
+                                <div class="item-title">${typeIcon} ${item.title}</div>
+                                <div class="item-category">${item.category}</div>
+                            </div>
+                            ${item.rating ? `<div class="rating">${'★'.repeat(item.rating)}${'☆'.repeat(5-item.rating)}</div>` : ''}
+                        </div>
+                        
+                        <div class="item-description">${item.description}</div>
+                        
+                        ${item.tags.length > 0 ? `
+                            <div class="item-tags">
+                                ${item.tags.slice(0, 5).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                ${item.tags.length > 5 ? `<span class="tag">+${item.tags.length - 5} more</span>` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="item-footer">
+                            <span>${item.type === 'skill' ? `Used in ${item.usageCount || 0} projects` : 
+                                     item.type === 'project' ? (item.endDate || 'Ongoing') : 
+                                     item.type === 'certification' ? (item.expiryDate || 'No expiry') : ''}</span>
+                            ${item.status ? `<span style="color: ${statusColor}">${item.status}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            grid.innerHTML = html;
+        }
+        
+        function showCategory(category) {
+            currentCategory = category;
+            
+            // Update active category link
+            document.querySelectorAll('.category-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter items based on category
+            let filteredItems = allItems;
+            if (category !== 'all') {
+                if (category === 'skills') {
+                    filteredItems = allItems.filter(item => item.type === 'skill');
+                } else if (category === 'projects') {
+                    filteredItems = allItems.filter(item => item.type === 'project');
+                } else if (category === 'certifications') {
+                    filteredItems = allItems.filter(item => item.type === 'certification');
+                } else if (category === 'architecture') {
+                    filteredItems = allItems.filter(item => item.type === 'adr');
+                }
+            }
+            
+            displayItems(filteredItems);
+            updateResultsCount(filteredItems.length);
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) {
+                displayItems(allItems);
+                updateResultsCount(allItems.length);
+                return;
+            }
+            
+            const filtered = allItems.filter(item => 
+                item.title.toLowerCase().includes(query) ||
+                item.description.toLowerCase().includes(query) ||
+                item.tags.some(tag => tag.toLowerCase().includes(query))
+            );
+            
+            displayItems(filtered);
+            updateResultsCount(filtered.length);
+        }
+        
+        function updateResultsCount(count) {
+            document.getElementById('resultsCount').textContent = `${count} items found`;
+        }
+        
+        function viewItem(id, type) {
+            // This would open a detailed view - for now just log
+            console.log(`Viewing ${type}: ${id}`);
+            alert(`Detailed view for ${type}: ${id}\n\nThis would show more details, usage examples, related projects, etc.`);
+        }
+        
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Initial load
+        checkApiStatus();
+        loadAllData();
+    </script>
+</body>
+</html>
