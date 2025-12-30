@@ -320,6 +320,48 @@ Remove all default environment values - require explicit environment targeting.
 
 ---
 
+## ADR-009: Frontend Architecture Decision
+
+**Date**: 2024-12-19  
+**Status**: Accepted  
+**Decision Makers**: Development Team
+
+### Context
+Need to choose frontend architecture that balances professional engineering signal with static hosting compatibility.
+
+### Decision
+Implement **React + TypeScript + Vite** with **shadcn/ui + Tailwind** architecture featuring:
+- **APIExplorer.tsx** - Interactive API documentation
+- **HealthDashboard.tsx** - System observability panel
+- **Query builder interface** - Database-like skills filtering
+- **Terminal animation** - Engaging developer experience
+
+### Rationale
+- **Engineering Signal**: Clear separation of concerns, scalable architecture
+- **Differentiators**: Interactive API docs, ops thinking demonstration
+- **Static Compatible**: No runtime dependencies, S3 + CloudFront ready
+- **Fallback Strategy**: Static HTML version for accessibility
+
+### Implementation
+```typescript
+// API-first development
+interface Skill {
+  skill_id: string;
+  category: 'cloud' | 'devops' | 'backend';
+  proficiency: number;
+}
+
+// Real backend calls
+export const getSkills = async (filters: SkillFilters): Promise<Skill[]>
+```
+
+### Consequences
+- **Positive**: Demonstrates full-stack capabilities, scales without rewrite
+- **Negative**: More complex than basic HTML, requires build process
+- **Trade-off**: Accepted complexity for professional engineering signal
+
+---
+
 ## Technology Stack Decisions
 
 ### Infrastructure
