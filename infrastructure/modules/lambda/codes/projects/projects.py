@@ -1,58 +1,196 @@
 import json
 import boto3
 import os
-import logging
-from typing import Dict, Any, List
+import requests
 from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from datetime import datetime, timedelta
 
 dynamodb = boto3.resource('dynamodb')
-table_name = os.environ.get('PROJECTS_TABLE')
+# Use environment variable for table name (no hardcoded environment)
+table_name = os.environ.get('PROJECTS_TABLE', 'oyins-journey-projects')
 projects_table = dynamodb.Table(table_name)
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def get_github_stats(github_url):
+    """
+    Fetch GitHub repository statistics and commit activity
+    """
     try:
-        logger.info(f"Processing projects request: {json.dumps(event, default=str)}")
+        if not github_url or 'github.com' not in github_url:
+            return None
+            
+        # Extract owner and repo from GitHub URL
+        # Expected format: https://github.com/owner/repo
+        parts = github_url.rstrip('/').split('/')
+        if len(parts) < 5:
+            return None
+            
+        owner = parts[-2]
+        repo = parts[-1]
         
+        # GitHub API endpoints
+        repo_api_url = f"https://api.github.com/repos/{owner}/{repo}"
+        commits_api_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+        
+        # Set timeout and headers
+        headers = {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'Living-Architecture-Resume/1.0'
+        }
+        
+        # Add GitHub token if available
+        github_token = os.environ.get('GITHUB_TOKEN')
+        if github_token:
+            headers['Authorization'] = f'token {github_token}'
+        
+        # Fetch repository information
+        repo_response = requests.get(repo_api_url, headers=headers, timeout=10)
+        
+        if repo_response.status_code != 200:
+            return None
+            
+        repo_data = repo_response.json()
+        
+        # Fetch recent commits (last 30 days)
+        since_date = (datetime.now() - timedelta(days=30)).isoformat()
+        commits_params = {'since': since_date, 'per_page': 100}
+        commits_response = requests.get(commits_api_url, headers=headers, params=commits_params, timeout=10)
+        
+        commits_data = []
+        if commits_response.status_code == 200:
+            commits_data = commits_response.json()
+        
+        # Extract relevant statistics
+        github_stats = {
+            'stars': repo_data.get('stargazers_count', 0),
+            'forks': repo_data.get('forks_count', 0),
+            'open_issues': repo_data.get('open_issues_count', 0),
+            'language': repo_data.get('language'),
+            'topics': repo_data.get('topics', []),
+            'last_updated': repo_data.get('updated_at'),
+            'commits_last_30_days': len(commits_data),
+            'recent_commits': [
+                {
+                    'sha': commit['sha'][:7],
+                    'message': commit['commit']['message'].split('\n')[0][:100],
+                    'date': commit['commit']['author']['date'],
+                    'author': commit['commit']['author']['name']
+                }
+                for commit in commits_data[:5]  # Last 5 commits
+            ]
+        }
+        
+        return github_stats
+        
+    except requests.exceptions.Timeout:
+        print(f"GitHub API timeout for {github_url}")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"GitHub API error for {github_url}: {str(e)}")
+        return None
+    except Exception as e:
+        print(f"Error fetching GitHub stats for {github_url}: {str(e)}")
+        return None
+
+def enrich_project_with_github_data(project):
+    """
+    Enrich project data with GitHub statistics if GitHub URL is present
+    """
+    github_url = project.get('github_url') or project.get('repository_url')
+    
+    if github_url:
+        github_stats = get_github_stats(github_url)
+        if github_stats:
+            project['github_stats'] = github_stats
+            project['enriched_at'] = datetime.now().isoformat()
+    
+    return project
+
+def lambda_handler(event, context):
+    try:
+        # Check if specific project ID requested
+        path_params = event.get('pathParameters') or {}
+        project_id = path_params.get('id')
+        
+        # Parse query parameters
         query_params = event.get('queryStringParameters') or {}
-        technology = query_params.get('technology')
-        status = query_params.get('status')
+        include_github_data = query_params.get('include_github', 'true').lower() == 'true'
         
-        response = projects_table.scan()
-        projects = response.get('Items', [])
-        
-        # Filter by technology if specified
-        if technology:
-            projects = [p for p in projects if technology.lower() in 
-                       [tech.lower() for tech in p.get('technologies', [])]]
-        
-        # Filter by status if specified
-        if status:
-            projects = [p for p in projects if p.get('status', '').lower() == status.lower()]
-        
-        # Sort by date (most recent first)
-        projects.sort(key=lambda x: x.get('end_date', x.get('start_date', '')), reverse=True)
-        
+        if project_id:
+            # Get specific project
+            response = projects_table.get_item(
+                Key={'project_id': project_id}
+            )
+            
+            if 'Item' not in response:
+                return {
+                    'statusCode': 404,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({
+                        'error': 'Project not found'
+                    })
+                }
+            
+            project = response['Item']
+            
+            # Enrich with GitHub data if requested
+            if include_github_data:
+                project = enrich_project_with_github_data(project)
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps(project)
+            }
+        else:
+            # Get all projects
+            response = projects_table.scan()
+            projects = response['Items']
+            
+            # Enrich with GitHub data if requested
+            if include_github_data:
+                enriched_projects = []
+                for project in projects:
+                    try:
+                        enriched_project = enrich_project_with_github_data(project)
+                        enriched_projects.append(enriched_project)
+                    except Exception as e:
+                        # If enrichment fails for one project, continue with others
+                        print(f"Failed to enrich project {project.get('project_id', 'unknown')}: {str(e)}")
+                        enriched_projects.append(project)
+                projects = enriched_projects
+            
+            # Sort by date (newest first)
+            projects.sort(key=lambda x: x.get('start_date', ''), reverse=True)
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'projects': projects,
+                    'count': len(projects),
+                    'enriched': include_github_data
+                })
+            }
+            
+    except Exception as e:
+        print(f"Error in projects handler: {str(e)}")
         return {
-            'statusCode': 200,
+            'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
-                'projects': projects,
-                'count': len(projects),
-                'filters': {'technology': technology, 'status': status}
+                'error': 'Internal server error',
+                'message': str(e) if os.environ.get('DEBUG') else 'An error occurred'
             })
-        }
-        
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Internal server error'})
         }

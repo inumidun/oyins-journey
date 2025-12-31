@@ -89,9 +89,20 @@ resource "aws_dynamodb_table" "certifications" {
     type = "S"
   }
 
+  attribute {
+    name = "category"
+    type = "S"
+  }
+
   global_secondary_index {
     name     = "ProviderIndex"
     hash_key = "provider"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name     = "CategoryIndex"
+    hash_key = "category"
     projection_type = "ALL"
   }
 

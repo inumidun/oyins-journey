@@ -23,6 +23,9 @@ const Header = () => {
             <a href="#projects" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Projects
             </a>
+            <a href="#certifications" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Certifications
+            </a>
           </nav>
 
           {/* Actions */}

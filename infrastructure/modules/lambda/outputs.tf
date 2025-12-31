@@ -23,3 +23,27 @@ output "certifications_invoke_arn" {
 output "certifications_function_name" {
   value = aws_lambda_function.certifications.function_name
 }
+
+output "adrs_invoke_arn" {
+  value = aws_lambda_function.adrs.invoke_arn
+}
+
+output "adrs_function_name" {
+  value = aws_lambda_function.adrs.function_name
+}
+
+output "health_invoke_arn" {
+  value = aws_lambda_function.health.invoke_arn
+}
+
+output "health_function_name" {
+  value = aws_lambda_function.health.function_name
+}
+
+output "evidence_linker_invoke_arn" {
+  value = aws_lambda_function.evidence_linker.invoke_arn
+}
+
+output "evidence_linker_function_name" {
+  value = aws_lambda_function.evidence_linker.function_name
+}
