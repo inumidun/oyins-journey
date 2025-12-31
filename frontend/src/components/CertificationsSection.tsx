@@ -157,9 +157,10 @@ const CertificationsSection = () => {
                 onChange={(e) => setProviderFilter(e.target.value)}
                 className="px-4 py-3 bg-background/50 border border-border rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               >
-                {providers.map((provider) => (
+                <option value="all">All Providers</option>
+                {providers.slice(1).map((provider) => (
                   <option key={provider} value={provider}>
-                    {provider === 'all' ? 'All Providers' : `${providerLogos[provider] || '🔹'} ${provider}`}
+                    {`${providerLogos[provider] || '🔹'} ${provider}`}
                   </option>
                 ))}
               </select>
@@ -170,9 +171,10 @@ const CertificationsSection = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-4 py-3 bg-background/50 border border-border rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               >
-                {statuses.map((status) => (
+                <option value="all">All Statuses</option>
+                {statuses.slice(1).map((status) => (
                   <option key={status} value={status}>
-                    {status === 'all' ? 'All Statuses' : getStatusText(status)}
+                    {getStatusText(status)}
                   </option>
                 ))}
               </select>
@@ -201,7 +203,7 @@ const CertificationsSection = () => {
         <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center justify-between">
             <p className="text-muted-foreground font-mono text-sm">
-              Found <span className="text-primary font-semibold">{filteredCertifications.length}</span> certification{filteredCertifications.length !== 1 ? 's' : ''}
+              <span className="text-primary font-semibold">{filteredCertifications.length}</span> certifications matching your query
             </p>
             {filteredCertifications.length > 0 && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -320,7 +322,7 @@ const CertificationsSection = () => {
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Award className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">No Certifications Found</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No certifications found matching your criteria.</h3>
                 <p className="text-muted-foreground text-sm">
                   Try adjusting your filters or search terms to find the certifications you're looking for.
                 </p>

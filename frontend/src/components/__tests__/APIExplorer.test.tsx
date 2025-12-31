@@ -41,7 +41,7 @@ describe('APIExplorer', () => {
             { method: 'GET', path: '/adrs', description: 'List all architectural decision records', params: [] },
             { method: 'GET', path: '/health', description: 'System health status', params: [] }
           ),
-          (endpoint: any) => {
+          (endpoint: { method: string; path: string; description: string; params: string[] }) => {
             render(<APIExplorer />);
             
             // Find and click the endpoint
@@ -60,7 +60,7 @@ describe('APIExplorer', () => {
             // Verify parameters are displayed if they exist
             if (endpoint.params.length > 0) {
               expect(screen.getByText('Query Parameters:')).toBeInTheDocument();
-              endpoint.params.forEach((param: any) => {
+              endpoint.params.forEach((param: string) => {
                 expect(screen.getByText(param)).toBeInTheDocument();
               });
             }
@@ -84,7 +84,7 @@ describe('APIExplorer', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.constantFrom('/skills', '/projects', '/certifications', '/adrs', '/health'),
-          async (path: any) => {
+          async (path: string) => {
             render(<APIExplorer />);
             
             // Select endpoint
@@ -130,7 +130,7 @@ describe('APIExplorer', () => {
               fc.constantFrom('aws', 'azure', 'gcp', 'active', 'expired', 'web', 'mobile')
             )
           }),
-          ({ endpoint }: any) => {
+          ({ endpoint }: { endpoint: string; params: Record<string, string> }) => {
             render(<APIExplorer />);
             
             // Select endpoint
@@ -162,7 +162,7 @@ describe('APIExplorer', () => {
             errorMessage: fc.string({ minLength: 1, maxLength: 100 }),
             statusCode: fc.constantFrom(400, 401, 403, 404, 500, 502, 503)
           }),
-          async ({ path, errorMessage, statusCode }: any) => {
+          async ({ path, errorMessage, statusCode }: { path: string; errorMessage: string; statusCode: number }) => {
             const mockError = new Error(errorMessage);
             (mockError as any).response = { status: statusCode };
             vi.mocked(api.default.get).mockRejectedValue(mockError);

@@ -84,14 +84,15 @@ describe('CertificationsSection', () => {
       expect(screen.getByText('AWS Solutions Architect Associate')).toBeInTheDocument();
     });
 
-    // Test active certification
-    expect(screen.getByText('Active')).toBeInTheDocument();
+    // Test status indicators - use getAllByText for multiple matches
+    const activeElements = screen.getAllByText('Active');
+    expect(activeElements.length).toBeGreaterThan(0);
     
-    // Test expired certification
-    expect(screen.getByText('Expired')).toBeInTheDocument();
+    const expiredElements = screen.getAllByText('Expired');
+    expect(expiredElements.length).toBeGreaterThan(0);
     
-    // Test expiring soon certification
-    expect(screen.getByText('Expiring Soon')).toBeInTheDocument();
+    const expiringSoonElements = screen.getAllByText('Expiring Soon');
+    expect(expiringSoonElements.length).toBeGreaterThan(0);
 
     // Test provider display
     expect(screen.getByText('AWS')).toBeInTheDocument();
@@ -162,8 +163,7 @@ describe('CertificationsSection', () => {
 
     // Should show only AWS certification in the results count
     await waitFor(() => {
-      expect(screen.getByText('1')).toBeInTheDocument();
-      expect(screen.getByText('certifications matching your query')).toBeInTheDocument();
+      expect(screen.getByText('1 certifications matching your query')).toBeInTheDocument();
     });
 
     // AWS certification should still be visible
@@ -202,8 +202,7 @@ describe('CertificationsSection', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('0')).toBeInTheDocument();
-      expect(screen.getByText('certifications matching your query')).toBeInTheDocument();
+      expect(screen.getByText('0 certifications matching your query')).toBeInTheDocument();
     });
   });
 
