@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, ExternalLink, Award, Calendar, AlertTriangle, CheckCircle, Loader2, Shield, Star } from 'lucide-react';
+import { Search, Filter, ExternalLink, Award, Calendar, AlertTriangle, CheckCircle, Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { certificationsApi, Certification } from '@/services/api';
 
