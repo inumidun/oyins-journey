@@ -48,7 +48,13 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
-        pip install pytest boto3 moto pytest-cov hypothesis
+        pip install pytest boto3 "moto[dynamodb,cloudwatch]>=4.2.0" pytest-cov hypothesis
+    
+    - name: Set AWS region for tests
+      run: |
+        echo "AWS_DEFAULT_REGION=us-east-1" >> $GITHUB_ENV
+        echo "AWS_ACCESS_KEY_ID=testing" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=testing" >> $GITHUB_ENV
     
     - name: Run Python tests with coverage
       run: |

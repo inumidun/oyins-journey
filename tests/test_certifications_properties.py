@@ -7,11 +7,16 @@ import pytest
 import json
 from datetime import datetime, timedelta
 from hypothesis import given, strategies as st, settings
-from moto import mock_dynamodb
+from moto.dynamodb import mock_dynamodb
 import boto3
 import os
 import sys
 from unittest.mock import patch
+
+# Set AWS region for tests
+os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
 
 # Set environment variable before importing
 os.environ['CERTIFICATIONS_TABLE'] = 'test-certifications'

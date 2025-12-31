@@ -7,10 +7,16 @@ import pytest
 import requests
 import json
 import time
+import os
 from datetime import datetime
 from unittest.mock import patch, MagicMock
 import boto3
-from moto import mock_dynamodb
+from moto.dynamodb import mock_dynamodb
+
+# Set AWS region for tests
+os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
 
 
 class TestIntegrationFlows:

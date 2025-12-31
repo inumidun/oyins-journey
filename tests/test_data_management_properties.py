@@ -7,11 +7,16 @@ import pytest
 from hypothesis import given, strategies as st, settings
 import json
 import boto3
-from moto import mock_dynamodb
+from moto.dynamodb import mock_dynamodb
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 import sys
 import os
+
+# Set AWS region for tests
+os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
 
 # Add scripts directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'scripts'))

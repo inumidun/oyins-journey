@@ -6,12 +6,23 @@ Feature: living-architecture-resume-enhancement
 import pytest
 from hypothesis import given, strategies as st, settings
 import json
+import os
+import sys
 import boto3
-from moto import mock_dynamodb
+from moto.dynamodb import mock_dynamodb
 from unittest.mock import patch, MagicMock
 import requests
-from api.projects import lambda_handler as projects_handler
-from api.skills import lambda_handler as skills_handler
+
+# Set AWS region for tests
+os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+
+# Add the api directory to the path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'api'))
+
+from projects import lambda_handler as projects_handler
+from skills import lambda_handler as skills_handler
 
 
 @mock_dynamodb
