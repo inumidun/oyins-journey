@@ -10,12 +10,6 @@ interface APIEndpoint {
   params: string[];
 }
 
-interface APIResponse {
-  data: any;
-  status: number;
-  statusText: string;
-}
-
 const apiEndpoints: APIEndpoint[] = [
   { method: 'GET', path: '/skills', description: 'List all skills with optional filtering', params: ['category', 'cloud'] },
   { method: 'GET', path: '/projects', description: 'List all projects', params: ['status', 'technology'] },
@@ -118,20 +112,6 @@ const APIExplorer = () => {
     if (status >= 400 && status < 500) return 'text-warning';
     if (status >= 500) return 'text-destructive';
     return 'text-muted-foreground';
-  };
-
-  const generateRequestUrl = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://api.oyins-journey.dev';
-    const queryParams = new URLSearchParams();
-    Object.entries(parameters).forEach(([key, value]) => {
-      if (value.trim()) {
-        queryParams.append(key, value);
-      }
-    });
-    
-    return queryParams.toString() 
-      ? `${apiUrl}${selectedEndpoint.path}?${queryParams.toString()}`
-      : `${apiUrl}${selectedEndpoint.path}`;
   };
 
   return (

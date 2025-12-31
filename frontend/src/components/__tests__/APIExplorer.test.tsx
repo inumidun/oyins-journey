@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { fc } from 'fast-check';
+import fc from 'fast-check';
 import APIExplorer from '../APIExplorer';
 import * as api from '../../services/api';
 
@@ -41,7 +41,7 @@ describe('APIExplorer', () => {
             { method: 'GET', path: '/adrs', description: 'List all architectural decision records', params: [] },
             { method: 'GET', path: '/health', description: 'System health status', params: [] }
           ),
-          (endpoint) => {
+          (endpoint: any) => {
             render(<APIExplorer />);
             
             // Find and click the endpoint
@@ -60,7 +60,7 @@ describe('APIExplorer', () => {
             // Verify parameters are displayed if they exist
             if (endpoint.params.length > 0) {
               expect(screen.getByText('Query Parameters:')).toBeInTheDocument();
-              endpoint.params.forEach(param => {
+              endpoint.params.forEach((param: any) => {
                 expect(screen.getByText(param)).toBeInTheDocument();
               });
             }
@@ -84,7 +84,7 @@ describe('APIExplorer', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.constantFrom('/skills', '/projects', '/certifications', '/adrs', '/health'),
-          async (path) => {
+          async (path: any) => {
             render(<APIExplorer />);
             
             // Select endpoint
@@ -130,7 +130,7 @@ describe('APIExplorer', () => {
               fc.constantFrom('aws', 'azure', 'gcp', 'active', 'expired', 'web', 'mobile')
             )
           }),
-          ({ endpoint, params }) => {
+          ({ endpoint }: any) => {
             render(<APIExplorer />);
             
             // Select endpoint
@@ -140,7 +140,6 @@ describe('APIExplorer', () => {
             // Simulate parameter changes by checking if parameter inputs exist
             // and verify URL construction logic
             const baseUrl = 'https://api.test.dev';
-            const expectedUrl = `${baseUrl}${endpoint}`;
             
             // Verify base URL components are displayed
             expect(screen.getByText(baseUrl)).toBeInTheDocument();
@@ -163,7 +162,7 @@ describe('APIExplorer', () => {
             errorMessage: fc.string({ minLength: 1, maxLength: 100 }),
             statusCode: fc.constantFrom(400, 401, 403, 404, 500, 502, 503)
           }),
-          async ({ path, errorMessage, statusCode }) => {
+          async ({ path, errorMessage, statusCode }: any) => {
             const mockError = new Error(errorMessage);
             (mockError as any).response = { status: statusCode };
             vi.mocked(api.default.get).mockRejectedValue(mockError);

@@ -27,13 +27,6 @@ interface SystemHealth {
   uptime_hours: number;
 }
 
-interface DeploymentInfo {
-  version: string;
-  timestamp: string;
-  status: 'success' | 'failure' | 'in_progress';
-  commit_sha?: string;
-}
-
 const HealthDashboard = () => {
   const [healthData, setHealthData] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
