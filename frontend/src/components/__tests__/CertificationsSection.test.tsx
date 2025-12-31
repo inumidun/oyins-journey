@@ -113,11 +113,12 @@ describe('CertificationsSection', () => {
     renderWithQueryClient(<CertificationsSection />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('all')).toBeInTheDocument();
+      expect(screen.getByText('AWS Solutions Architect Associate')).toBeInTheDocument();
     });
 
     // Change provider filter to AWS
-    const providerSelect = screen.getByDisplayValue('all');
+    const selects = screen.getAllByRole('combobox');
+    const providerSelect = selects[0]; // First select is provider filter
     fireEvent.change(providerSelect, { target: { value: 'AWS' } });
 
     await waitFor(() => {
@@ -133,12 +134,12 @@ describe('CertificationsSection', () => {
     renderWithQueryClient(<CertificationsSection />);
 
     await waitFor(() => {
-      expect(screen.getAllByDisplayValue('all')).toHaveLength(2); // provider and status filters
+      expect(screen.getByText('AWS Solutions Architect Associate')).toBeInTheDocument();
     });
 
     // Change status filter to active
-    const statusSelects = screen.getAllByDisplayValue('all');
-    const statusSelect = statusSelects[1]; // Second select is status filter
+    const selects = screen.getAllByRole('combobox');
+    const statusSelect = selects[1]; // Second select is status filter
     fireEvent.change(statusSelect, { target: { value: 'active' } });
 
     await waitFor(() => {
@@ -163,7 +164,8 @@ describe('CertificationsSection', () => {
 
     // Should show only AWS certification in the results count
     await waitFor(() => {
-      expect(screen.getByText('1 certifications matching your query')).toBeInTheDocument();
+      expect(screen.getByText('1')).toBeInTheDocument();
+      expect(screen.getByText('certifications matching your query')).toBeInTheDocument();
     });
 
     // AWS certification should still be visible
@@ -202,7 +204,8 @@ describe('CertificationsSection', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('0 certifications matching your query')).toBeInTheDocument();
+      expect(screen.getByText('0')).toBeInTheDocument();
+      expect(screen.getByText('certifications matching your query')).toBeInTheDocument();
     });
   });
 
@@ -231,14 +234,15 @@ describe('CertificationsSection', () => {
 
     await waitFor(() => {
       expect(screen.getByText('GET')).toBeInTheDocument();
-      expect(screen.getByText('/certifications')).toBeInTheDocument();
+      expect(screen.getAllByText('/certifications')).toHaveLength(2); // One in header, one in API query
     });
 
     // Initial query should show default filters
     expect(screen.getByText('?provider=all&status=all')).toBeInTheDocument();
 
     // Change provider filter
-    const providerSelect = screen.getByDisplayValue('all');
+    const selects = screen.getAllByRole('combobox');
+    const providerSelect = selects[0]; // First select is provider filter
     fireEvent.change(providerSelect, { target: { value: 'AWS' } });
 
     // Query string should update

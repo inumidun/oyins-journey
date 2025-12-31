@@ -192,7 +192,7 @@ const APIExplorer = () => {
                 <p className="mt-3 text-muted-foreground text-sm">
                   {selectedEndpoint.description}
                 </p>
-                {selectedEndpoint.params.length > 0 && (
+                {selectedEndpoint.params.length > 0 ? (
                   <div className="mt-4">
                     <p className="text-xs text-muted-foreground mb-2">Query Parameters:</p>
                     <div className="space-y-2">
@@ -212,6 +212,10 @@ const APIExplorer = () => {
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <div className="mt-4">
+                    <p className="text-xs text-muted-foreground">No parameters required</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -229,6 +233,11 @@ const APIExplorer = () => {
               <div className="p-4 font-mono text-sm max-h-[300px] overflow-y-auto">
                 {loading ? (
                   <p className="text-muted-foreground">Making request...</p>
+                ) : error ? (
+                  <div>
+                    <p className="text-destructive mb-2">Error</p>
+                    <pre className="text-foreground whitespace-pre-wrap">{response}</pre>
+                  </div>
                 ) : response ? (
                   <pre className="text-foreground whitespace-pre-wrap">{response}</pre>
                 ) : (
