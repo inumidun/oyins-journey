@@ -10,7 +10,7 @@ import os
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 import boto3
-from moto.cloudwatch import mock_cloudwatch
+from moto import mock_cloudwatch
 
 # Set AWS region for tests
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"

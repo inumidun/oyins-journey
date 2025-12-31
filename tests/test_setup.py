@@ -4,8 +4,18 @@ Basic setup tests to verify the testing environment is working correctly.
 import pytest
 import os
 import boto3
-from moto.dynamodb import mock_dynamodb
-from moto.cloudwatch import mock_cloudwatch
+
+# Try different moto import patterns for compatibility
+try:
+    from moto import mock_dynamodb, mock_cloudwatch
+except ImportError:
+    try:
+        from moto.dynamodb import mock_dynamodb
+        from moto.cloudwatch import mock_cloudwatch
+    except ImportError:
+        # Fallback for very old versions
+        from moto.mock_dynamodb2 import mock_dynamodb2 as mock_dynamodb
+        from moto.mock_cloudwatch import mock_cloudwatch
 
 
 class TestSetup:

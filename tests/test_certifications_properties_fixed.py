@@ -7,7 +7,7 @@ import pytest
 import json
 from datetime import datetime, timedelta
 from hypothesis import given, strategies as st, settings
-from moto.dynamodb import mock_dynamodb
+from moto import mock_dynamodb
 import boto3
 import os
 import sys

@@ -7,7 +7,7 @@ import pytest
 from hypothesis import given, strategies as st, settings
 import json
 import boto3
-from moto.dynamodb import mock_dynamodb
+from moto import mock_dynamodb
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 import sys

@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 from unittest.mock import patch, MagicMock
 import boto3
-from moto.dynamodb import mock_dynamodb
+from moto import mock_dynamodb
 
 # Set AWS region for tests
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"

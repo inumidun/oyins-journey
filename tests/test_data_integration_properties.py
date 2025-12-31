@@ -9,7 +9,7 @@ import json
 import os
 import sys
 import boto3
-from moto.dynamodb import mock_dynamodb
+from moto import mock_dynamodb
 from unittest.mock import patch, MagicMock
 import requests
 

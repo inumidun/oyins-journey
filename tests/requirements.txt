@@ -6,7 +6,7 @@ pytest-asyncio>=0.21.1
 
 # AWS testing
 boto3>=1.28.0
-moto[dynamodb,cloudwatch]>=4.2.0
+moto>=4.0.0,<5.0.0
 
 # Property-based testing
 hypothesis>=6.82.0
