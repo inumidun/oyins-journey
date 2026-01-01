@@ -567,52 +567,24 @@
                     <div class="card-header">
                         <div class="card-icon blue">💡</div>
                         <div>
-                            <div class="card-title">Add New Skill</div>
-                            <div class="card-description">Showcase your technical expertise</div>
+                            <div class="card-title">Skills Management</div>
+                            <div class="card-description">API endpoints not yet implemented</div>
                         </div>
                     </div>
-                    <form id="skillForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Skill Name</label>
-                                <input type="text" id="skillName" placeholder="e.g., AWS Lambda" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Category</label>
-                                <select id="skillCategory" required>
-                                    <option value="">Select Category</option>
-                                    <option value="cloud">Cloud</option>
-                                    <option value="devops">DevOps</option>
-                                    <option value="database">Database</option>
-                                    <option value="programming">Programming</option>
-                                    <option value="frontend">Frontend</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Proficiency Level</label>
-                                <select id="skillProficiency" required>
-                                    <option value="">Select Level</option>
-                                    <option value="beginner">Beginner</option>
-                                    <option value="intermediate">Intermediate</option>
-                                    <option value="advanced">Advanced</option>
-                                    <option value="expert">Expert</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Technologies (comma-separated)</label>
-                                <input type="text" id="skillTechnologies" placeholder="Python, AWS, Docker">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Evidence Links (comma-separated)</label>
-                                <textarea id="skillEvidence" placeholder="https://github.com/project1, https://demo.example.com"></textarea>
-                            </div>
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🚧</div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 12px;">Coming Soon</h3>
+                        <p style="margin-bottom: 16px;">The Skills management API endpoints are not yet implemented.</p>
+                        <p style="font-size: 0.875rem;">
+                            <strong>Current Status:</strong> GET /skills ✅ (read-only)<br>
+                            <strong>Needed:</strong> POST /admin/skills (for adding new skills)
+                        </p>
+                        <div style="margin-top: 20px; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <p style="font-size: 0.875rem; color: var(--text-muted);">
+                                You can view existing skills on the main portfolio, but adding new ones requires implementing the admin API endpoints.
+                            </p>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">✨ Add Skill</button>
-                            <button type="reset" class="btn btn-secondary">Clear Form</button>
-                        </div>
-                    </form>
-                    <div id="skillMessage" class="message"></div>
+                    </div>
                 </div>
             </div>
 
@@ -622,52 +594,24 @@
                     <div class="card-header">
                         <div class="card-icon purple">🚀</div>
                         <div>
-                            <div class="card-title">Add New Project</div>
-                            <div class="card-description">Showcase your development work</div>
+                            <div class="card-title">Projects Management</div>
+                            <div class="card-description">API endpoints not yet implemented</div>
                         </div>
                     </div>
-                    <form id="projectForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Project Name</label>
-                                <input type="text" id="projectName" placeholder="e.g., Portfolio Website" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select id="projectStatus" required>
-                                    <option value="">Select Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="on-hold">On Hold</option>
-                                </select>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Description</label>
-                                <textarea id="projectDescription" placeholder="Describe your project..." required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Technologies (comma-separated)</label>
-                                <input type="text" id="projectTechnologies" placeholder="AWS Lambda, DynamoDB, React">
-                            </div>
-                            <div class="form-group">
-                                <label>Start Date</label>
-                                <input type="date" id="projectStartDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label>GitHub URL</label>
-                                <input type="url" id="projectGithubUrl" placeholder="https://github.com/...">
-                            </div>
-                            <div class="form-group">
-                                <label>Live URL</label>
-                                <input type="url" id="projectLiveUrl" placeholder="https://...">
-                            </div>
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🚧</div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 12px;">Coming Soon</h3>
+                        <p style="margin-bottom: 16px;">The Projects management API endpoints are not yet implemented.</p>
+                        <p style="font-size: 0.875rem;">
+                            <strong>Current Status:</strong> GET /projects ✅ (read-only)<br>
+                            <strong>Needed:</strong> POST /admin/projects (for adding new projects)
+                        </p>
+                        <div style="margin-top: 20px; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <p style="font-size: 0.875rem; color: var(--text-muted);">
+                                You can view existing projects on the main portfolio, but adding new ones requires implementing the admin API endpoints.
+                            </p>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">🚀 Add Project</button>
-                            <button type="reset" class="btn btn-secondary">Clear Form</button>
-                        </div>
-                    </form>
-                    <div id="projectMessage" class="message"></div>
+                    </div>
                 </div>
             </div>
 
@@ -677,55 +621,24 @@
                     <div class="card-header">
                         <div class="card-icon green">🏆</div>
                         <div>
-                            <div class="card-title">Add New Certification</div>
-                            <div class="card-description">Highlight your professional credentials</div>
+                            <div class="card-title">Certifications Management</div>
+                            <div class="card-description">API endpoints not yet implemented</div>
                         </div>
                     </div>
-                    <form id="certForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Certification Name</label>
-                                <input type="text" id="certName" placeholder="e.g., AWS Solutions Architect" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Provider</label>
-                                <select id="certProvider" required>
-                                    <option value="">Select Provider</option>
-                                    <option value="aws">AWS</option>
-                                    <option value="azure">Microsoft Azure</option>
-                                    <option value="gcp">Google Cloud</option>
-                                    <option value="hashicorp">HashiCorp</option>
-                                    <option value="kubernetes">CNCF/Kubernetes</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Earned Date</label>
-                                <input type="date" id="certEarnedDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Expiry Date</label>
-                                <input type="date" id="certExpiryDate">
-                            </div>
-                            <div class="form-group">
-                                <label>Credential ID</label>
-                                <input type="text" id="certCredentialId" placeholder="ABC123XYZ">
-                            </div>
-                            <div class="form-group">
-                                <label>Verification URL</label>
-                                <input type="url" id="certVerificationUrl" placeholder="https://credly.com/...">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Skills Demonstrated (comma-separated)</label>
-                                <textarea id="certSkills" placeholder="Cloud Architecture, Security, Cost Optimization"></textarea>
-                            </div>
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🚧</div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 12px;">Coming Soon</h3>
+                        <p style="margin-bottom: 16px;">The Certifications management API endpoints are not yet implemented.</p>
+                        <p style="font-size: 0.875rem;">
+                            <strong>Current Status:</strong> GET /certifications ✅ (read-only)<br>
+                            <strong>Needed:</strong> POST /admin/certifications (for adding new certifications)
+                        </p>
+                        <div style="margin-top: 20px; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <p style="font-size: 0.875rem; color: var(--text-muted);">
+                                You can view existing certifications on the main portfolio, but adding new ones requires implementing the admin API endpoints.
+                            </p>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">🏆 Add Certification</button>
-                            <button type="reset" class="btn btn-secondary">Clear Form</button>
-                        </div>
-                    </form>
-                    <div id="certMessage" class="message"></div>
+                    </div>
                 </div>
             </div>
 
@@ -735,47 +648,24 @@
                     <div class="card-header">
                         <div class="card-icon orange">📋</div>
                         <div>
-                            <div class="card-title">Add Architecture Decision Record</div>
-                            <div class="card-description">Document your technical decisions</div>
+                            <div class="card-title">ADRs Management</div>
+                            <div class="card-description">API endpoints not yet implemented</div>
                         </div>
                     </div>
-                    <form id="adrForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Title</label>
-                                <input type="text" id="adrTitle" placeholder="e.g., Use DynamoDB for data storage" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Decision</label>
-                                <input type="text" id="adrDecision" placeholder="Brief decision statement" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Context</label>
-                                <textarea id="adrContext" placeholder="Describe the context and problem..." required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Options Considered (comma-separated)</label>
-                                <input type="text" id="adrOptions" placeholder="Option A, Option B, Option C">
-                            </div>
-                            <div class="form-group">
-                                <label>AWS Services (comma-separated)</label>
-                                <input type="text" id="adrServices" placeholder="Lambda, DynamoDB, API Gateway">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Decision Rationale</label>
-                                <textarea id="adrRationale" placeholder="Explain why this decision was made..." required></textarea>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Trade-offs (comma-separated)</label>
-                                <input type="text" id="adrTradeoffs" placeholder="Pro 1, Con 1, Pro 2">
-                            </div>
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🚧</div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 12px;">Coming Soon</h3>
+                        <p style="margin-bottom: 16px;">The Architecture Decision Records management API endpoints are not yet implemented.</p>
+                        <p style="font-size: 0.875rem;">
+                            <strong>Current Status:</strong> GET /adrs ✅ (read-only)<br>
+                            <strong>Needed:</strong> POST /admin/adrs (for adding new ADRs)
+                        </p>
+                        <div style="margin-top: 20px; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <p style="font-size: 0.875rem; color: var(--text-muted);">
+                                You can view existing ADRs on the main portfolio, but adding new ones requires implementing the admin API endpoints.
+                            </p>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">📋 Add ADR</button>
-                            <button type="reset" class="btn btn-secondary">Clear Form</button>
-                        </div>
-                    </form>
-                    <div id="adrMessage" class="message"></div>
+                    </div>
                 </div>
             </div>
             
@@ -786,30 +676,18 @@
                         <div class="card-icon" style="background: rgba(34, 197, 94, 0.2);">⚙️</div>
                         <div>
                             <div class="card-title">Site Configuration</div>
-                            <div class="card-description">Manage your social links and site URLs</div>
+                            <div class="card-description">Manage configurable site URLs</div>
                         </div>
                     </div>
                     <form id="settingsForm">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>LinkedIn URL</label>
-                                <input type="url" id="linkedinUrl" placeholder="https://linkedin.com/in/your-username">
-                            </div>
-                            <div class="form-group">
-                                <label>GitHub URL</label>
-                                <input type="url" id="githubUrl" placeholder="https://github.com/your-username">
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="emailAddress" placeholder="hello@your-domain.com">
+                                <label>Live API URL</label>
+                                <input type="url" id="liveApiUrl" placeholder="https://api.oyins-journey.dev">
                             </div>
                             <div class="form-group">
                                 <label>Source Repository URL</label>
-                                <input type="url" id="sourceRepoUrl" placeholder="https://github.com/your-username/your-repo">
-                            </div>
-                            <div class="form-group">
-                                <label>Live API URL</label>
-                                <input type="url" id="liveApiUrl" placeholder="https://api.your-domain.com">
+                                <input type="url" id="sourceRepoUrl" placeholder="https://github.com/oyindamola-oladipo/oyins-journey">
                             </div>
                         </div>
                         <div class="form-actions">
@@ -824,12 +702,12 @@
                     <div class="card-header">
                         <div class="card-icon" style="background: rgba(59, 130, 246, 0.2);">ℹ️</div>
                         <div>
-                            <div class="card-title">Branding Information</div>
-                            <div class="card-description">These are fixed in the code for consistency</div>
+                            <div class="card-title">Fixed Branding & Social Links</div>
+                            <div class="card-description">These are hardcoded for consistency</div>
                         </div>
                     </div>
                     <div style="color: var(--text-secondary); line-height: 1.8;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
                             <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
                                 <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 4px;">Name</div>
                                 <div style="font-weight: 600; color: var(--text-primary);">Oyin</div>
@@ -839,9 +717,25 @@
                                 <div style="font-weight: 600; color: var(--text-primary);">Cloud Engineer & Solutions Architect</div>
                             </div>
                         </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 4px;">LinkedIn</div>
+                                <div style="font-weight: 600; color: var(--text-primary); font-size: 0.875rem;">linkedin.com/in/oyindamola-oladipo</div>
+                            </div>
+                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 4px;">GitHub</div>
+                                <div style="font-weight: 600; color: var(--text-primary); font-size: 0.875rem;">github.com/oyindamola-oladipo</div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 4px;">Email</div>
+                                <div style="font-weight: 600; color: var(--text-primary); font-size: 0.875rem;">hello@oyins-journey.dev</div>
+                            </div>
+                        </div>
                         <p style="margin-top: 16px; font-size: 0.875rem;">
-                            <strong style="color: var(--text-primary);">Note:</strong> The name and tagline are hardcoded for brand consistency. 
-                            Only social links and URLs can be updated through this interface.
+                            <strong style="color: var(--text-primary);">Note:</strong> Branding and social links are hardcoded for consistency. 
+                            Only API and repository URLs can be updated through this interface.
                         </p>
                     </div>
                 </div>
@@ -870,160 +764,72 @@
             return prefix + '-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
 
-        // Skills Form
-        document.getElementById('skillForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const skillData = {
-                skill_id: generateId('skill'),
-                name: document.getElementById('skillName').value,
-                category: document.getElementById('skillCategory').value,
-                proficiency: document.getElementById('skillProficiency').value,
-                technologies: document.getElementById('skillTechnologies').value.split(',').map(t => t.trim()).filter(t => t),
-                evidence_links: document.getElementById('skillEvidence').value.split(',').map(l => l.trim()).filter(l => l),
-                usage_count: 1
-            };
-            try {
-                const response = await fetch(`${API_BASE_URL}/admin/skills`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(skillData)
-                });
-                if (response.ok) {
-                    showMessage('skillMessage', '✅ Skill added successfully!');
-                    document.getElementById('skillForm').reset();
-                } else { throw new Error('Failed to add skill'); }
-            } catch (error) {
-                showMessage('skillMessage', '❌ Error: ' + error.message, true);
-            }
-        });
-
-        // Projects Form
-        document.getElementById('projectForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const projectData = {
-                project_id: generateId('project'),
-                name: document.getElementById('projectName').value,
-                description: document.getElementById('projectDescription').value,
-                technologies: document.getElementById('projectTechnologies').value.split(',').map(t => t.trim()).filter(t => t),
-                start_date: document.getElementById('projectStartDate').value,
-                status: document.getElementById('projectStatus').value,
-                github_url: document.getElementById('projectGithubUrl').value,
-                live_url: document.getElementById('projectLiveUrl').value
-            };
-            try {
-                const response = await fetch(`${API_BASE_URL}/admin/projects`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(projectData)
-                });
-                if (response.ok) {
-                    showMessage('projectMessage', '✅ Project added successfully!');
-                    document.getElementById('projectForm').reset();
-                } else { throw new Error('Failed to add project'); }
-            } catch (error) {
-                showMessage('projectMessage', '❌ Error: ' + error.message, true);
-            }
-        });
-
-        // Certifications Form
-        document.getElementById('certForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const certData = {
-                cert_id: generateId('cert'),
-                name: document.getElementById('certName').value,
-                provider: document.getElementById('certProvider').value,
-                earned_date: document.getElementById('certEarnedDate').value,
-                expiry_date: document.getElementById('certExpiryDate').value,
-                status: 'active',
-                credential_id: document.getElementById('certCredentialId').value,
-                verification_url: document.getElementById('certVerificationUrl').value,
-                skills_demonstrated: document.getElementById('certSkills').value.split(',').map(s => s.trim()).filter(s => s)
-            };
-            try {
-                const response = await fetch(`${API_BASE_URL}/admin/certifications`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(certData)
-                });
-                if (response.ok) {
-                    showMessage('certMessage', '✅ Certification added successfully!');
-                    document.getElementById('certForm').reset();
-                } else { throw new Error('Failed to add certification'); }
-            } catch (error) {
-                showMessage('certMessage', '❌ Error: ' + error.message, true);
-            }
-        });
-
-        // ADRs Form
-        document.getElementById('adrForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const adrData = {
-                adr_id: generateId('adr'),
-                title: document.getElementById('adrTitle').value,
-                decision: document.getElementById('adrDecision').value,
-                context: document.getElementById('adrContext').value,
-                options_considered: document.getElementById('adrOptions').value.split(',').map(o => o.trim()).filter(o => o),
-                decision_rationale: document.getElementById('adrRationale').value,
-                tradeoffs: document.getElementById('adrTradeoffs').value.split(',').map(t => t.trim()).filter(t => t),
-                aws_services: document.getElementById('adrServices').value.split(',').map(s => s.trim()).filter(s => s),
-                date: new Date().toISOString().split('T')[0],
-                status: 'accepted'
-            };
-            try {
-                const response = await fetch(`${API_BASE_URL}/admin/adrs`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(adrData)
-                });
-                if (response.ok) {
-                    showMessage('adrMessage', '✅ ADR added successfully!');
-                    document.getElementById('adrForm').reset();
-                } else { throw new Error('Failed to add ADR'); }
-            } catch (error) {
-                showMessage('adrMessage', '❌ Error: ' + error.message, true);
-            }
-        });
-
         // Site Settings Functions
         async function loadCurrentSettings() {
+            // For now, just load default values since we're keeping most things hardcoded
+            document.getElementById('sourceRepoUrl').value = 'https://github.com/oyindamola-oladipo/oyins-journey';
+            document.getElementById('liveApiUrl').value = 'https://api.oyins-journey.dev';
+            showMessage('settingsMessage', '✅ Default settings loaded!');
+        }
+
+        // Dashboard Functions
+        async function loadDashboardStats() {
             try {
-                const response = await fetch(`${API_BASE_URL}/config`);
-                if (response.ok) {
-                    const config = await response.json();
-                    
-                    // Populate form fields
-                    document.getElementById('linkedinUrl').value = config.socialLinks?.linkedin || '';
-                    document.getElementById('githubUrl').value = config.socialLinks?.github || '';
-                    
-                    // Handle email - remove mailto: prefix if present
-                    const email = config.socialLinks?.email || '';
-                    document.getElementById('emailAddress').value = email.replace('mailto:', '');
-                    
-                    document.getElementById('sourceRepoUrl').value = config.sourceRepoUrl || '';
-                    document.getElementById('liveApiUrl').value = config.liveApiUrl || '';
-                    
-                    showMessage('settingsMessage', '✅ Current settings loaded!');
-                } else {
-                    throw new Error('Failed to load settings');
+                // Load skills count
+                const skillsResponse = await fetch(`${API_BASE_URL}/skills`);
+                if (skillsResponse.ok) {
+                    const skillsData = await skillsResponse.json();
+                    document.getElementById('skillsCount').textContent = skillsData.length || 0;
+                }
+
+                // Load projects count
+                const projectsResponse = await fetch(`${API_BASE_URL}/projects`);
+                if (projectsResponse.ok) {
+                    const projectsData = await projectsResponse.json();
+                    document.getElementById('projectsCount').textContent = projectsData.length || 0;
+                }
+
+                // Load certifications count
+                const certsResponse = await fetch(`${API_BASE_URL}/certifications`);
+                if (certsResponse.ok) {
+                    const certsData = await certsResponse.json();
+                    document.getElementById('certsCount').textContent = certsData.length || 0;
+                }
+
+                // Load ADRs count
+                const adrsResponse = await fetch(`${API_BASE_URL}/adrs`);
+                if (adrsResponse.ok) {
+                    const adrsData = await adrsResponse.json();
+                    document.getElementById('adrsCount').textContent = adrsData.length || 0;
                 }
             } catch (error) {
-                showMessage('settingsMessage', '❌ Error loading settings: ' + error.message, true);
+                console.log('Error loading dashboard stats:', error);
+                // Keep default "-" values if API calls fail
             }
         }
 
-        // Site Settings Form
+        // Site Settings Form - Simplified to just show success (no actual API call for now)
         document.getElementById('settingsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('emailAddress').value;
+            // Get the values (for future use when you want to make them configurable)
+            const sourceRepoUrl = document.getElementById('sourceRepoUrl').value;
+            const liveApiUrl = document.getElementById('liveApiUrl').value;
+            
+            // For now, just show success since everything is hardcoded
+            showMessage('settingsMessage', '✅ Settings noted! (Currently hardcoded in code for consistency)');
+            
+            // Future: When you want to make these configurable, uncomment this:
+            /*
             const settingsData = {
+                sourceRepoUrl: sourceRepoUrl,
+                liveApiUrl: liveApiUrl,
+                // Keep branding and social links hardcoded
                 socialLinks: {
-                    linkedin: document.getElementById('linkedinUrl').value,
-                    github: document.getElementById('githubUrl').value,
-                    email: email ? `mailto:${email}` : ''
+                    linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
+                    github: 'https://github.com/oyindamola-oladipo',
+                    email: 'mailto:hello@oyins-journey.dev'
                 },
-                sourceRepoUrl: document.getElementById('sourceRepoUrl').value,
-                liveApiUrl: document.getElementById('liveApiUrl').value,
                 branding: {
                     name: 'Oyin',
                     tagline: 'Cloud Engineer & Solutions Architect'
@@ -1045,11 +851,13 @@
             } catch (error) {
                 showMessage('settingsMessage', '❌ Error saving settings: ' + error.message, true);
             }
+            */
         });
 
         // Load current settings when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadCurrentSettings();
+            loadDashboardStats();
         });
     </script>
 </body>

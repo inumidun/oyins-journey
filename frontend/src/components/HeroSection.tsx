@@ -21,16 +21,16 @@ const HeroSection = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Use config or fallback to hardcoded values
-  const socialLinks = config?.socialLinks || {
-    linkedin: 'https://linkedin.com/in/your-linkedin-username',
-    github: 'https://github.com/your-github-username',
-    email: 'mailto:hello@your-domain.com'
+  // Use hardcoded values for consistency
+  const socialLinks = {
+    linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
+    github: 'https://github.com/oyindamola-oladipo',
+    email: 'mailto:hello@oyins-journey.dev'
   };
 
-  const branding = config?.branding || {
-    name: 'Your Name',
-    tagline: 'Your Professional Title'
+  const branding = {
+    name: 'Oyin',
+    tagline: 'Cloud Engineer & Solutions Architect'
   };
 
   return (

@@ -4,11 +4,11 @@ import { useSiteConfig } from '@/hooks/useSiteConfig';
 const Footer = () => {
   const { config } = useSiteConfig();
   
-  // Use config or fallback to hardcoded values
-  const socialLinks = config?.socialLinks || {
-    linkedin: 'https://linkedin.com/in/your-linkedin-username',
-    github: 'https://github.com/your-github-username',
-    email: 'mailto:hello@your-domain.com'
+  // Use hardcoded values for consistency
+  const socialLinks = {
+    linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
+    github: 'https://github.com/oyindamola-oladipo',
+    email: 'mailto:hello@oyins-journey.dev'
   };
 
   return (

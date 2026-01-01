@@ -123,19 +123,20 @@ export const siteConfigApi = {
       const response = await api.get('/config');
       return response.data;
     } catch (error) {
-      // Return default config if API fails
+      console.error('Failed to fetch site config, using defaults:', error);
+      // Return default config with your actual branding if API fails
       return {
         socialLinks: {
-          linkedin: 'https://linkedin.com/in/your-linkedin-username',
-          github: 'https://github.com/your-github-username',
-          email: 'mailto:hello@your-domain.com'
+          linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
+          github: 'https://github.com/oyindamola-oladipo',
+          email: 'mailto:hello@oyins-journey.dev'
         },
         branding: {
-          name: 'Your Name',
-          tagline: 'Your Professional Title'
+          name: 'Oyin',
+          tagline: 'Cloud Engineer & Solutions Architect'
         },
-        sourceRepoUrl: 'https://github.com/your-github-username/your-repo-name',
-        liveApiUrl: 'https://api.your-domain.com'
+        sourceRepoUrl: 'https://github.com/oyindamola-oladipo/oyins-journey',
+        liveApiUrl: 'https://api.oyins-journey.dev'
       };
     }
   },
