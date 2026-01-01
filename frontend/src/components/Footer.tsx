@@ -1,8 +1,11 @@
 import { Terminal, Linkedin, Github, Mail } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 
 const Footer = () => {
-  // Social links - these would come from admin settings in production
-  const socialLinks = {
+  const { config } = useSiteConfig();
+  
+  // Use config or fallback to hardcoded values
+  const socialLinks = config?.socialLinks || {
     linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
     github: 'https://github.com/oyindamola-oladipo',
     email: 'mailto:hello@oyins-journey.dev'
@@ -20,31 +23,37 @@ const Footer = () => {
 
           {/* Social Links */}
           <div className="flex items-center gap-4">
-            <a 
-              href={socialLinks.linkedin} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="p-2 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
-              aria-label="LinkedIn Profile"
-            >
-              <Linkedin className="w-4 h-4 text-muted-foreground hover:text-primary" />
-            </a>
-            <a 
-              href={socialLinks.github} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="p-2 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
-              aria-label="GitHub Profile"
-            >
-              <Github className="w-4 h-4 text-muted-foreground hover:text-primary" />
-            </a>
-            <a 
-              href={socialLinks.email}
-              className="p-2 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
-              aria-label="Email Me"
-            >
-              <Mail className="w-4 h-4 text-muted-foreground hover:text-primary" />
-            </a>
+            {socialLinks.linkedin && (
+              <a 
+                href={socialLinks.linkedin} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+                aria-label="LinkedIn Profile"
+              >
+                <Linkedin className="w-4 h-4 text-muted-foreground hover:text-primary" />
+              </a>
+            )}
+            {socialLinks.github && (
+              <a 
+                href={socialLinks.github} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+                aria-label="GitHub Profile"
+              >
+                <Github className="w-4 h-4 text-muted-foreground hover:text-primary" />
+              </a>
+            )}
+            {socialLinks.email && (
+              <a 
+                href={socialLinks.email}
+                className="p-2 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+                aria-label="Email Me"
+              >
+                <Mail className="w-4 h-4 text-muted-foreground hover:text-primary" />
+              </a>
+            )}
           </div>
 
           {/* Description */}

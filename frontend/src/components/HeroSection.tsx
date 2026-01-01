@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ArrowDown, Terminal, Award, Briefcase, Code2, Linkedin, Github, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 
 const HeroSection = () => {
   const [typedText, setTypedText] = useState('');
   const fullText = 'GET /api/skills?category=cloud';
+  const { config } = useSiteConfig();
 
   useEffect(() => {
     let index = 0;
@@ -19,11 +21,16 @@ const HeroSection = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Social links - these would come from admin settings in production
-  const socialLinks = {
+  // Use config or fallback to hardcoded values
+  const socialLinks = config?.socialLinks || {
     linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
     github: 'https://github.com/oyindamola-oladipo',
     email: 'mailto:hello@oyins-journey.dev'
+  };
+
+  const branding = config?.branding || {
+    name: 'Oyin',
+    tagline: 'Cloud Engineer & Solutions Architect'
   };
 
   return (
@@ -48,12 +55,12 @@ const HeroSection = () => {
           {/* Main headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 slide-up" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Hi, I'm</span>{' '}
-            <span className="gradient-text">Oyin</span>
+            <span className="gradient-text">{branding.name}</span>
           </h1>
 
           {/* Tagline */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto slide-up" style={{ animationDelay: '0.2s' }}>
-            Cloud Engineer & Solutions Architect
+            {branding.tagline}
           </p>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto slide-up" style={{ animationDelay: '0.25s' }}>
             I build{' '}
@@ -63,31 +70,37 @@ const HeroSection = () => {
 
           {/* Social Links */}
           <div className="flex items-center justify-center gap-4 mb-8 slide-up" style={{ animationDelay: '0.3s' }}>
-            <a 
-              href={socialLinks.linkedin} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
-              aria-label="LinkedIn Profile"
-            >
-              <Linkedin className="w-5 h-5 text-primary" />
-            </a>
-            <a 
-              href={socialLinks.github} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
-              aria-label="GitHub Profile"
-            >
-              <Github className="w-5 h-5 text-primary" />
-            </a>
-            <a 
-              href={socialLinks.email}
-              className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
-              aria-label="Email Me"
-            >
-              <Mail className="w-5 h-5 text-primary" />
-            </a>
+            {socialLinks.linkedin && (
+              <a 
+                href={socialLinks.linkedin} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+                aria-label="LinkedIn Profile"
+              >
+                <Linkedin className="w-5 h-5 text-primary" />
+              </a>
+            )}
+            {socialLinks.github && (
+              <a 
+                href={socialLinks.github} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+                aria-label="GitHub Profile"
+              >
+                <Github className="w-5 h-5 text-primary" />
+              </a>
+            )}
+            {socialLinks.email && (
+              <a 
+                href={socialLinks.email}
+                className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+                aria-label="Email Me"
+              >
+                <Mail className="w-5 h-5 text-primary" />
+              </a>
+            )}
           </div>
 
           {/* Terminal mockup */}

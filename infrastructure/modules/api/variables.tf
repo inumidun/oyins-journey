@@ -42,3 +42,18 @@ variable "certifications_function_name" {
   description = "Certifications Lambda function name"
   type        = string
 }
+
+variable "site_config_invoke_arn" {
+  description = "Site Config Lambda function invoke ARN"
+  type        = string
+}
+
+variable "site_config_function_name" {
+  description = "Site Config Lambda function name"
+  type        = string
+}
+
+variable "cognito_user_pool_arn" {
+  description = "Cognito User Pool ARN for API authorization"
+  type        = string
+}

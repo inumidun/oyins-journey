@@ -135,6 +135,27 @@ resource "aws_lambda_function" "evidence_linker" {
   depends_on = [data.archive_file.evidence_linker]
 }
 
+# Site Configuration Function
+resource "aws_lambda_function" "site_config" {
+  filename         = "${path.module}/packages/site_config.zip"
+  function_name    = "${var.name_prefix}-site-config"
+  role            = var.lambda_role_arn
+  handler         = "site_config.lambda_handler"
+  runtime         = "python3.13"
+  timeout         = 30
+  memory_size     = 256
+  
+  environment {
+    variables = {
+      SITE_CONFIG_TABLE = "${var.name_prefix}-site-config"
+      LOG_LEVEL        = "INFO"
+      ENVIRONMENT      = var.environment
+    }
+  }
+  
+  depends_on = [data.archive_file.site_config]
+}
+
 # Package Functions
 data "archive_file" "skills" {
   type        = "zip"
@@ -172,6 +193,12 @@ data "archive_file" "evidence_linker" {
   output_path = "${path.module}/packages/evidence_linker.zip"
 }
 
+data "archive_file" "site_config" {
+  type        = "zip"
+  source_dir  = "${path.module}/codes/site_config"
+  output_path = "${path.module}/packages/site_config.zip"
+}
+
 # CloudWatch Log Groups
 resource "aws_cloudwatch_log_group" "skills_logs" {
   name              = "/aws/lambda/${aws_lambda_function.skills.function_name}"
@@ -200,5 +227,10 @@ resource "aws_cloudwatch_log_group" "health_logs" {
 
 resource "aws_cloudwatch_log_group" "evidence_linker_logs" {
   name              = "/aws/lambda/${aws_lambda_function.evidence_linker.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "site_config_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.site_config.function_name}"
   retention_in_days = 14
 }

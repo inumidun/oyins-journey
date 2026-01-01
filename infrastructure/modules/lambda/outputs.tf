@@ -47,3 +47,11 @@ output "evidence_linker_invoke_arn" {
 output "evidence_linker_function_name" {
   value = aws_lambda_function.evidence_linker.function_name
 }
+
+output "site_config_invoke_arn" {
+  value = aws_lambda_function.site_config.invoke_arn
+}
+
+output "site_config_function_name" {
+  value = aws_lambda_function.site_config.function_name
+}

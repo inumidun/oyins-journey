@@ -34,6 +34,17 @@ variable "environment" {
   type        = string
 }
 
+variable "admin_email" {
+  description = "Admin user email for Cognito"
+  type        = string
+}
+
+variable "admin_temp_password" {
+  description = "Temporary password for admin user"
+  type        = string
+  sensitive   = true
+}
+
 # Local values for environment-specific naming
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
@@ -64,6 +75,16 @@ module "lambda" {
   lambda_role_arn  = module.api.lambda_role_arn
 }
 
+# Cognito Module
+module "cognito" {
+  source = "./modules/cognito"
+  
+  name_prefix          = local.name_prefix
+  environment          = var.environment
+  admin_email          = var.admin_email
+  admin_temp_password  = var.admin_temp_password
+}
+
 # API Module
 module "api" {
   source = "./modules/api"
@@ -75,8 +96,12 @@ module "api" {
     module.database.projects_table_arn,
     module.database.adrs_table_arn,
     module.database.versions_table_arn,
-    module.database.certifications_table_arn
+    module.database.certifications_table_arn,
+    module.database.site_config_table_arn
   ]
+  
+  # Cognito configuration
+  cognito_user_pool_arn = module.cognito.user_pool_arn
   
   # All Lambda functions
   skills_invoke_arn           = module.lambda.skills_invoke_arn
@@ -85,6 +110,8 @@ module "api" {
   projects_function_name      = module.lambda.projects_function_name
   certifications_invoke_arn   = module.lambda.certifications_invoke_arn
   certifications_function_name = module.lambda.certifications_function_name
+  site_config_invoke_arn      = module.lambda.site_config_invoke_arn
+  site_config_function_name   = module.lambda.site_config_function_name
 }
 
 # Outputs
@@ -114,4 +141,16 @@ output "cloudfront_frontend_id" {
 
 output "cloudfront_admin_id" {
   value = module.frontend.cloudfront_admin_id
+}
+
+output "cognito_user_pool_id" {
+  value = module.cognito.user_pool_id
+}
+
+output "cognito_user_pool_client_id" {
+  value = module.cognito.user_pool_client_id
+}
+
+output "cognito_domain_url" {
+  value = module.cognito.cognito_domain_url
 }

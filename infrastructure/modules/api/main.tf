@@ -4,6 +4,15 @@ resource "aws_api_gateway_rest_api" "main" {
   description = "Oyin's Journey API - ${var.environment} environment"
 }
 
+# Cognito Authorizer
+resource "aws_api_gateway_authorizer" "cognito_authorizer" {
+  name                   = "${var.name_prefix}-cognito-authorizer"
+  rest_api_id           = aws_api_gateway_rest_api.main.id
+  type                  = "COGNITO_USER_POOLS"
+  provider_arns         = [var.cognito_user_pool_arn]
+  identity_source       = "method.request.header.Authorization"
+}
+
 # Lambda IAM Role
 resource "aws_iam_role" "lambda_role" {
   name = "${var.name_prefix}-lambda-role"
@@ -198,13 +207,78 @@ resource "aws_lambda_permission" "certifications_permission" {
   source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
 }
 
+# Site Configuration API
+resource "aws_api_gateway_resource" "config" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "config"
+}
+
+resource "aws_api_gateway_method" "config_get" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.config.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "config_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.config.id
+  http_method = aws_api_gateway_method.config_get.http_method
+  
+  integration_http_method = "POST"
+  type                   = "AWS_PROXY"
+  uri                    = var.site_config_invoke_arn
+}
+
+# Admin Config API (for future admin portal)
+resource "aws_api_gateway_resource" "admin" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "admin"
+}
+
+resource "aws_api_gateway_resource" "admin_config" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "config"
+}
+
+resource "aws_api_gateway_method" "admin_config_put" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_config.id
+  http_method   = "PUT"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+}
+
+resource "aws_api_gateway_integration" "admin_config_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_config.id
+  http_method = aws_api_gateway_method.admin_config_put.http_method
+  
+  integration_http_method = "POST"
+  type                   = "AWS_PROXY"
+  uri                    = var.site_config_invoke_arn
+}
+
+resource "aws_lambda_permission" "site_config_permission" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = var.site_config_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
+}
+
 # API Deployment
 resource "aws_api_gateway_deployment" "main" {
   depends_on = [
     aws_api_gateway_integration.skills_integration,
     aws_api_gateway_integration.projects_integration,
     aws_api_gateway_integration.certifications_integration,
-    aws_api_gateway_integration.certifications_options_integration
+    aws_api_gateway_integration.certifications_options_integration,
+    aws_api_gateway_integration.config_integration,
+    aws_api_gateway_integration.admin_config_integration
   ]
 
   rest_api_id = aws_api_gateway_rest_api.main.id

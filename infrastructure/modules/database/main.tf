@@ -111,3 +111,19 @@ resource "aws_dynamodb_table" "certifications" {
     Environment = var.environment
   }
 }
+
+resource "aws_dynamodb_table" "site_config" {
+  name           = "${var.name_prefix}-site-config"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "config_id"
+
+  attribute {
+    name = "config_id"
+    type = "S"
+  }
+
+  tags = {
+    Name = "${var.name_prefix} Site Configuration"
+    Environment = var.environment
+  }
+}

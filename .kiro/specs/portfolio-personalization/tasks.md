@@ -73,38 +73,38 @@ This implementation plan transforms the Oyin's Journey portfolio into a fully pe
   - Test conditional rendering with various data states
   - Ask the user if questions arise
 
-- [ ] 7. Create Site Configuration infrastructure
-  - [ ] 7.1 Create site-config DynamoDB table schema
+- [x] 7. Create Site Configuration infrastructure
+  - [x] 7.1 Create site-config DynamoDB table schema
     - Store social links, branding, source/API URLs
     - _Requirements: 3.1_
-  - [ ] 7.2 Create API endpoint for site configuration
+  - [x] 7.2 Create API endpoint for site configuration
     - GET /config for public access
     - PUT /admin/config for admin updates
     - _Requirements: 3.1, 3.2_
-  - [ ] 7.3 Update frontend to fetch social links from config
+  - [x] 7.3 Update frontend to fetch social links from config
     - Replace hardcoded social links with API data
     - _Requirements: 3.2, 3.3, 3.4_
   - [ ]* 7.4 Write property test for URL validation
     - **Property 5: URL Validation**
     - **Validates: Requirements 3.5**
 
-- [ ] 8. Set up Amazon Cognito authentication
-  - [ ] 8.1 Create Cognito User Pool via Terraform
+- [x] 8. Set up Amazon Cognito authentication
+  - [x] 8.1 Create Cognito User Pool via Terraform
     - Configure user pool with email sign-in
     - Set up app client for admin portal
     - _Requirements: 1.1, 1.5_
-  - [ ] 8.2 Create authentication service in frontend
+  - [x] 8.2 Create authentication service in frontend
     - Implement sign-in, sign-out, session management
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
-  - [ ] 8.3 Create protected admin route
+  - [x] 8.3 Create protected admin route
     - Redirect unauthenticated users to login
     - _Requirements: 1.1, 1.3_
   - [ ]* 8.4 Write property test for authentication access control
     - **Property 1: Authentication Access Control**
     - **Validates: Requirements 1.1, 1.3**
 
-- [ ] 9. Create Admin Portal UI
-  - [ ] 9.1 Create admin dashboard layout
+- [x] 9. Create Admin Portal UI
+  - [x] 9.1 Create admin dashboard layout
     - Navigation for content types (certifications, skills, projects)
     - Overview statistics
     - _Requirements: 1.2_
@@ -119,7 +119,7 @@ This implementation plan transforms the Oyin's Journey portfolio into a fully pe
     - Add/edit/delete projects
     - Optional repo and demo URL fields
     - _Requirements: 2.3_
-  - [ ] 9.5 Create social links configuration form
+  - [x] 9.5 Create social links configuration form
     - Edit LinkedIn, GitHub, email links
     - URL validation feedback
     - _Requirements: 3.1, 3.5_
@@ -130,12 +130,12 @@ This implementation plan transforms the Oyin's Journey portfolio into a fully pe
     - **Property 3: Optional Project Fields Handling**
     - **Validates: Requirements 2.3**
 
-- [ ] 10. Implement visitor analytics
-  - [ ] 10.1 Create analytics tracking service
+- [x] 10. Implement visitor analytics
+  - [x] 10.1 Create analytics tracking service
     - Record page views anonymously
     - No PII collection
     - _Requirements: 8.1, 8.4_
-  - [ ] 10.2 Create analytics dashboard in admin portal
+  - [x] 10.2 Create analytics dashboard in admin portal
     - Display page views, unique visitors, popular sections
     - _Requirements: 8.2, 8.3_
   - [ ]* 10.3 Write property test for analytics privacy
