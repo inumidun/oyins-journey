@@ -40,6 +40,8 @@ export interface Certification {
   expiry_date?: string;
   credential_id?: string;
   computed_status?: 'active' | 'expired' | 'expiring_soon' | 'no_expiry';
+  credly_url?: string;
+  badge_url?: string;
 }
 
 export const skillsApi = {

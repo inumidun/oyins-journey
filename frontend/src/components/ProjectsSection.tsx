@@ -65,10 +65,11 @@ const ProjectsSection = () => {
             /projects
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Proof by <span className="gradient-text">Link</span>
+            Featured <span className="gradient-text">Projects</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            No screenshots, no claims. Every project links to live proof — repos, demos, pipelines, and dashboards.
+            Real-world projects showcasing cloud architecture, infrastructure as code, and full-stack development. 
+            Each project includes available documentation, repositories, and live demos where applicable.
           </p>
         </div>
 

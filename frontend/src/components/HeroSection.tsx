@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ArrowDown, Terminal, Zap, GitBranch, Database } from 'lucide-react';
+import { ArrowDown, Terminal, Award, Briefcase, Code2, Linkedin, Github, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const HeroSection = () => {
   const [typedText, setTypedText] = useState('');
-  const fullText = 'GET /cv/skills?cloud=aws';
+  const fullText = 'GET /api/skills?category=cloud';
 
   useEffect(() => {
     let index = 0;
@@ -18,6 +18,13 @@ const HeroSection = () => {
     }, 80);
     return () => clearInterval(timer);
   }, []);
+
+  // Social links - these would come from admin settings in production
+  const socialLinks = {
+    linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
+    github: 'https://github.com/oyindamola-oladipo',
+    email: 'mailto:hello@oyins-journey.dev'
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
@@ -34,27 +41,57 @@ const HeroSection = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary border border-border mb-8 slide-up">
             <div className="w-2 h-2 rounded-full bg-success pulse-dot" />
             <span className="text-sm font-mono text-muted-foreground">
-              System Online • Latency 45ms
+              Cloud Engineer • AWS Certified
             </span>
           </div>
 
           {/* Main headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 slide-up" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Oyin's</span>{' '}
-            <span className="gradient-text">Journey</span>
-            <br />
-            <span className="text-foreground">CV System</span>
+            <span className="text-foreground">Hi, I'm</span>{' '}
+            <span className="gradient-text">Oyin</span>
           </h1>
 
           {/* Tagline */}
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto slide-up" style={{ animationDelay: '0.2s' }}>
-            My CV isn't a PDF. It's a{' '}
-            <span className="text-primary font-semibold">deployed cloud system</span>{' '}
-            that proves my skills by existing.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto slide-up" style={{ animationDelay: '0.2s' }}>
+            Cloud Engineer & Solutions Architect
+          </p>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto slide-up" style={{ animationDelay: '0.25s' }}>
+            I build{' '}
+            <span className="text-primary font-semibold">scalable cloud solutions</span>{' '}
+            and this portfolio is proof — it's a fully deployed AWS architecture.
           </p>
 
+          {/* Social Links */}
+          <div className="flex items-center justify-center gap-4 mb-8 slide-up" style={{ animationDelay: '0.3s' }}>
+            <a 
+              href={socialLinks.linkedin} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+              aria-label="LinkedIn Profile"
+            >
+              <Linkedin className="w-5 h-5 text-primary" />
+            </a>
+            <a 
+              href={socialLinks.github} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+              aria-label="GitHub Profile"
+            >
+              <Github className="w-5 h-5 text-primary" />
+            </a>
+            <a 
+              href={socialLinks.email}
+              className="p-3 rounded-full bg-secondary/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
+              aria-label="Email Me"
+            >
+              <Mail className="w-5 h-5 text-primary" />
+            </a>
+          </div>
+
           {/* Terminal mockup */}
-          <div className="max-w-xl mx-auto mb-10 slide-up" style={{ animationDelay: '0.3s' }}>
+          <div className="max-w-xl mx-auto mb-10 slide-up" style={{ animationDelay: '0.35s' }}>
             <div className="bg-card border border-border rounded-lg overflow-hidden shadow-2xl">
               <div className="flex items-center gap-2 px-4 py-3 bg-secondary border-b border-border">
                 <div className="w-3 h-3 rounded-full bg-destructive/80" />
@@ -74,22 +111,26 @@ const HeroSection = () => {
 
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 slide-up" style={{ animationDelay: '0.4s' }}>
-            <Button variant="glow" size="xl" className="font-mono">
-              <Terminal className="w-5 h-5 mr-2" />
-              Explore API
+            <Button variant="glow" size="xl" className="font-mono" asChild>
+              <a href="#projects">
+                <Briefcase className="w-5 h-5 mr-2" />
+                View Projects
+              </a>
             </Button>
-            <Button variant="outline" size="xl">
-              View Source Code
+            <Button variant="outline" size="xl" asChild>
+              <a href={socialLinks.github} target="_blank" rel="noopener noreferrer">
+                <Github className="w-5 h-5 mr-2" />
+                GitHub Profile
+              </a>
             </Button>
           </div>
 
           {/* Feature pills */}
           <div className="flex flex-wrap items-center justify-center gap-3 slide-up" style={{ animationDelay: '0.5s' }}>
             {[
-              { icon: Database, label: 'Queryable Skills' },
-              { icon: GitBranch, label: 'Versioned History' },
-              { icon: Zap, label: 'Live Endpoints' },
-              { icon: Terminal, label: '100% IaC' },
+              { icon: Code2, label: 'Full-Stack Development' },
+              { icon: Award, label: 'AWS Certified' },
+              { icon: Terminal, label: 'Infrastructure as Code' },
             ].map((feature) => (
               <div
                 key={feature.label}

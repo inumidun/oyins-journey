@@ -31,7 +31,7 @@ describe('APIExplorer', () => {
     render(<APIExplorer />);
     
     // Verify the main heading is displayed
-    expect(screen.getByText('Your CV as an')).toBeInTheDocument();
+    expect(screen.getByText('My CV as an')).toBeInTheDocument();
     expect(screen.getByText('API')).toBeInTheDocument();
     
     // Verify endpoints are listed

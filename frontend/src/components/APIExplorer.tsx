@@ -122,11 +122,11 @@ const APIExplorer = () => {
             /api/v1
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Your CV as an <span className="gradient-text">API</span>
+            My CV as an <span className="gradient-text">API</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Every skill, project, and decision is exposed via RESTful endpoints. 
-            Query my experience like you would any other service.
+            My skills, projects, and certifications are exposed via RESTful endpoints. 
+            Query my experience programmatically.
           </p>
         </div>
 

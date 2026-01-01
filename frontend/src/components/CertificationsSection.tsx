@@ -52,7 +52,9 @@ const CertificationsSection = () => {
             issue_date: '2024-01-15',
             expiry_date: '2027-01-15',
             credential_id: 'AWS-SAA-123456',
-            computed_status: 'active'
+            computed_status: 'active',
+            credly_url: 'https://www.credly.com/badges/example-saa',
+            badge_url: 'https://images.credly.com/size/340x340/images/0e284c3f-5164-4b21-8660-0d84737941bc/image.png'
           },
           {
             id: 'aws-dva-c02',
@@ -61,7 +63,9 @@ const CertificationsSection = () => {
             issue_date: '2024-03-20',
             expiry_date: '2027-03-20',
             credential_id: 'AWS-DVA-789012',
-            computed_status: 'active'
+            computed_status: 'active',
+            credly_url: 'https://www.credly.com/badges/example-dva',
+            badge_url: 'https://images.credly.com/size/340x340/images/b9feab85-1a43-4f6c-99a5-631b88d5461b/image.png'
           },
           {
             id: 'terraform-associate',
@@ -252,9 +256,13 @@ const CertificationsSection = () => {
                     className="group relative bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 slide-up"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    {/* Provider Badge */}
-                    <div className={`absolute -top-3 -right-3 w-12 h-12 bg-gradient-to-br ${providerGradient} rounded-full border flex items-center justify-center text-lg font-bold shadow-lg`}>
-                      {providerLogos[cert.provider] || '🔹'}
+                    {/* Provider Badge or Credly Badge */}
+                    <div className={`absolute -top-3 -right-3 w-12 h-12 bg-gradient-to-br ${providerGradient} rounded-full border flex items-center justify-center text-lg font-bold shadow-lg overflow-hidden`}>
+                      {cert.badge_url ? (
+                        <img src={cert.badge_url} alt={`${cert.name} badge`} className="w-full h-full object-cover" />
+                      ) : (
+                        providerLogos[cert.provider] || '🔹'
+                      )}
                     </div>
 
                     {/* Status Indicator */}
@@ -263,16 +271,18 @@ const CertificationsSection = () => {
                         <StatusIcon className="w-3 h-3" />
                         <span className="text-xs font-medium">{status.label}</span>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
-                        asChild
-                      >
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </Button>
+                      {cert.credly_url && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
+                          asChild
+                        >
+                          <a href={cert.credly_url} target="_blank" rel="noopener noreferrer" title="View on Credly">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      )}
                     </div>
 
                     {/* Certification Info */}
@@ -322,19 +332,26 @@ const CertificationsSection = () => {
                       </div>
                     )}
 
-                    {/* Verification Button */}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full font-mono text-xs hover:bg-primary/10 hover:border-primary/50 transition-all group-hover:shadow-md" 
-                      asChild
-                    >
-                      <a href="#" target="_blank" rel="noopener noreferrer">
-                        <Shield className="w-3 h-3 mr-2" />
-                        Verify Credential
-                        <ExternalLink className="w-3 h-3 ml-2" />
-                      </a>
-                    </Button>
+                    {/* Verification Button - only show if Credly URL exists */}
+                    {cert.credly_url ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full font-mono text-xs hover:bg-primary/10 hover:border-primary/50 transition-all group-hover:shadow-md" 
+                        asChild
+                      >
+                        <a href={cert.credly_url} target="_blank" rel="noopener noreferrer">
+                          <Shield className="w-3 h-3 mr-2" />
+                          Verify on Credly
+                          <ExternalLink className="w-3 h-3 ml-2" />
+                        </a>
+                      </Button>
+                    ) : (
+                      <div className="text-center text-xs text-muted-foreground py-2">
+                        <Shield className="w-3 h-3 inline mr-1" />
+                        Credential verified
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -2,6 +2,12 @@ import { Terminal, Github, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Header = () => {
+  // Configuration - these would come from admin settings in production
+  const config = {
+    sourceRepoUrl: 'https://github.com/oyindamola-oladipo/oyins-journey',
+    liveApiUrl: 'https://api.oyins-journey.dev'
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
@@ -30,13 +36,17 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <Github className="w-4 h-4 mr-2" />
-              Source
+            <Button variant="ghost" size="sm" asChild>
+              <a href={config.sourceRepoUrl} target="_blank" rel="noopener noreferrer">
+                <Github className="w-4 h-4 mr-2" />
+                Source
+              </a>
             </Button>
-            <Button variant="outline" size="sm">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Live API
+            <Button variant="outline" size="sm" asChild>
+              <a href={config.liveApiUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Live API
+              </a>
             </Button>
           </div>
         </div>
