@@ -57,13 +57,104 @@ jobs:
     - name: Terraform Plan
       working-directory: ./infrastructure
       run: |
-        terraform plan -var-file="config/${{ inputs.environment }}.tfvars" -out=tfplan
+        # Function to handle terraform state locks
+        handle_terraform_lock() {
+          local cmd="$1"
+          local max_retries=3
+          local retry_count=0
+          
+          while [ $retry_count -lt $max_retries ]; do
+            echo "Attempt $((retry_count + 1)) of $max_retries"
+            
+            if eval "$cmd"; then
+              echo "✅ Terraform command succeeded"
+              return 0
+            else
+              echo "❌ Terraform command failed"
+              
+              # Check if it's a lock error and extract lock ID
+              if eval "$cmd" 2>&1 | grep -q "Error acquiring the state lock"; then
+                echo "🔒 State lock detected, attempting to unlock..."
+                LOCK_ID=$(eval "$cmd" 2>&1 | grep -A 10 "Lock Info:" | grep "ID:" | awk '{print $2}' | head -1)
+                
+                if [ -n "$LOCK_ID" ]; then
+                  echo "Found lock ID: $LOCK_ID"
+                  terraform force-unlock -force "$LOCK_ID"
+                  echo "🔓 Lock released, retrying..."
+                  retry_count=$((retry_count + 1))
+                  sleep 5
+                else
+                  echo "Could not extract lock ID"
+                  return 1
+                fi
+              else
+                echo "Non-lock related error, failing..."
+                return 1
+              fi
+            fi
+          done
+          
+          echo "Max retries reached, failing..."
+          return 1
+        }
+        
+        # Run terraform plan with lock handling
+        handle_terraform_lock "terraform plan -var-file=\"config/${{ inputs.environment }}.tfvars\" -out=tfplan"
     
     - name: Terraform Apply
       id: terraform-apply
       working-directory: ./infrastructure
       run: |
-        terraform apply -auto-approve tfplan
+        # Function to handle terraform state locks (same as above)
+        handle_terraform_lock() {
+          local cmd="$1"
+          local max_retries=3
+          local retry_count=0
+          
+          while [ $retry_count -lt $max_retries ]; do
+            echo "Attempt $((retry_count + 1)) of $max_retries"
+            
+            if eval "$cmd"; then
+              echo "✅ Terraform command succeeded"
+              return 0
+            else
+              echo "❌ Terraform command failed"
+              
+              # Check if it's a lock error and extract lock ID
+              if eval "$cmd" 2>&1 | grep -q "Error acquiring the state lock"; then
+                echo "🔒 State lock detected, attempting to unlock..."
+                LOCK_ID=$(eval "$cmd" 2>&1 | grep -A 10 "Lock Info:" | grep "ID:" | awk '{print $2}' | head -1)
+                
+                if [ -n "$LOCK_ID" ]; then
+                  echo "Found lock ID: $LOCK_ID"
+                  terraform force-unlock -force "$LOCK_ID"
+                  echo "🔓 Lock released, retrying..."
+                  retry_count=$((retry_count + 1))
+                  sleep 5
+                else
+                  echo "Could not extract lock ID"
+                  return 1
+                fi
+              else
+                echo "Non-lock related error, failing..."
+                return 1
+              fi
+            fi
+          done
+          
+          echo "Max retries reached, failing..."
+          return 1
+        }
+        
+        # Run terraform apply with lock handling
+        handle_terraform_lock "terraform apply -auto-approve tfplan"
+        
+        # Store outputs in SSM Parameter Store for frontend workflow
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-api-url" --value "$(terraform output -raw api_gateway_url)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-s3-bucket" --value "$(terraform output -raw s3_bucket_name)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-s3-admin-bucket" --value "$(terraform output -raw s3_admin_bucket_name)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-cloudfront-frontend-id" --value "$(terraform output -raw cloudfront_frontend_id)" --type "String" --overwrite
+        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-cloudfront-admin-id" --value "$(terraform output -raw cloudfront_admin_id)" --type "String" --overwrite
         
         # Store outputs in SSM Parameter Store for frontend workflow
         aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-api-url" --value "$(terraform output -raw api_gateway_url)" --type "String" --overwrite
