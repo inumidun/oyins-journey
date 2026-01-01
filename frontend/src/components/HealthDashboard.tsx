@@ -130,7 +130,6 @@ const HealthDashboard = () => {
   }
 
   const metrics = healthData?.metrics;
-  const systemInfo = healthData?.system_info;
 
   const mainMetrics = [
     {
