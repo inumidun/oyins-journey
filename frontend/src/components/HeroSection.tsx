@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ArrowDown, Terminal, Award, Briefcase, Code2, Linkedin, Github, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
 
 const HeroSection = () => {
   const [typedText, setTypedText] = useState('');
   const fullText = 'GET /api/skills?category=cloud';
-  const { config } = useSiteConfig();
 
   useEffect(() => {
     let index = 0;

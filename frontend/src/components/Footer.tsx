@@ -1,8 +1,6 @@
 import { Terminal, Linkedin, Github, Mail } from 'lucide-react';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
 
 const Footer = () => {
-  const { config } = useSiteConfig();
   
   // Use hardcoded values for consistency
   const socialLinks = {
