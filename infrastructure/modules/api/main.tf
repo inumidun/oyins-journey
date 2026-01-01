@@ -78,6 +78,13 @@ resource "aws_api_gateway_method" "skills_get" {
   authorization = "NONE"
 }
 
+resource "aws_api_gateway_method" "skills_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.skills.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "skills_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.skills.id
@@ -86,6 +93,45 @@ resource "aws_api_gateway_integration" "skills_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.skills_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "skills_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.skills.id
+  http_method = aws_api_gateway_method.skills_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "skills_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.skills.id
+  http_method = aws_api_gateway_method.skills_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "skills_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.skills.id
+  http_method = aws_api_gateway_method.skills_options.http_method
+  status_code = aws_api_gateway_method_response.skills_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # Projects API
@@ -102,6 +148,13 @@ resource "aws_api_gateway_method" "projects_get" {
   authorization = "NONE"
 }
 
+resource "aws_api_gateway_method" "projects_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.projects.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "projects_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.projects.id
@@ -110,6 +163,45 @@ resource "aws_api_gateway_integration" "projects_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.projects_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "projects_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.projects.id
+  http_method = aws_api_gateway_method.projects_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "projects_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.projects.id
+  http_method = aws_api_gateway_method.projects_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "projects_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.projects.id
+  http_method = aws_api_gateway_method.projects_options.http_method
+  status_code = aws_api_gateway_method_response.projects_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # Certifications API
@@ -221,6 +313,13 @@ resource "aws_api_gateway_method" "config_get" {
   authorization = "NONE"
 }
 
+resource "aws_api_gateway_method" "config_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.config.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "config_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.config.id
@@ -229,6 +328,45 @@ resource "aws_api_gateway_integration" "config_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.site_config_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "config_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.config.id
+  http_method = aws_api_gateway_method.config_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "config_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.config.id
+  http_method = aws_api_gateway_method.config_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "config_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.config.id
+  http_method = aws_api_gateway_method.config_options.http_method
+  status_code = aws_api_gateway_method_response.config_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # Admin Config API (for future admin portal)
@@ -252,6 +390,13 @@ resource "aws_api_gateway_method" "admin_config_put" {
   authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
+resource "aws_api_gateway_method" "admin_config_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_config.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "admin_config_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.admin_config.id
@@ -260,6 +405,45 @@ resource "aws_api_gateway_integration" "admin_config_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.site_config_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "admin_config_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_config.id
+  http_method = aws_api_gateway_method.admin_config_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "admin_config_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_config.id
+  http_method = aws_api_gateway_method.admin_config_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "admin_config_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_config.id
+  http_method = aws_api_gateway_method.admin_config_options.http_method
+  status_code = aws_api_gateway_method_response.admin_config_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'PUT,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # Admin Skills API
@@ -277,6 +461,13 @@ resource "aws_api_gateway_method" "admin_skills_post" {
   authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
+resource "aws_api_gateway_method" "admin_skills_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_skills.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "admin_skills_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.admin_skills.id
@@ -285,6 +476,45 @@ resource "aws_api_gateway_integration" "admin_skills_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.skills_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "admin_skills_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_skills.id
+  http_method = aws_api_gateway_method.admin_skills_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "admin_skills_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_skills.id
+  http_method = aws_api_gateway_method.admin_skills_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "admin_skills_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_skills.id
+  http_method = aws_api_gateway_method.admin_skills_options.http_method
+  status_code = aws_api_gateway_method_response.admin_skills_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # Admin Projects API
@@ -302,6 +532,13 @@ resource "aws_api_gateway_method" "admin_projects_post" {
   authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
+resource "aws_api_gateway_method" "admin_projects_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_projects.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "admin_projects_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.admin_projects.id
@@ -310,6 +547,45 @@ resource "aws_api_gateway_integration" "admin_projects_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.projects_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "admin_projects_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_projects.id
+  http_method = aws_api_gateway_method.admin_projects_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "admin_projects_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_projects.id
+  http_method = aws_api_gateway_method.admin_projects_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "admin_projects_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_projects.id
+  http_method = aws_api_gateway_method.admin_projects_options.http_method
+  status_code = aws_api_gateway_method_response.admin_projects_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # Admin Certifications API
@@ -327,6 +603,13 @@ resource "aws_api_gateway_method" "admin_certifications_post" {
   authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
+resource "aws_api_gateway_method" "admin_certifications_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_certifications.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "admin_certifications_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.admin_certifications.id
@@ -335,6 +618,45 @@ resource "aws_api_gateway_integration" "admin_certifications_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.certifications_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "admin_certifications_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_certifications.id
+  http_method = aws_api_gateway_method.admin_certifications_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "admin_certifications_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_certifications.id
+  http_method = aws_api_gateway_method.admin_certifications_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "admin_certifications_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_certifications.id
+  http_method = aws_api_gateway_method.admin_certifications_options.http_method
+  status_code = aws_api_gateway_method_response.admin_certifications_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # ADRs API (public read)
@@ -351,6 +673,13 @@ resource "aws_api_gateway_method" "adrs_get" {
   authorization = "NONE"
 }
 
+resource "aws_api_gateway_method" "adrs_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.adrs.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "adrs_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.adrs.id
@@ -359,6 +688,45 @@ resource "aws_api_gateway_integration" "adrs_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.adrs_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "adrs_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.adrs.id
+  http_method = aws_api_gateway_method.adrs_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "adrs_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.adrs.id
+  http_method = aws_api_gateway_method.adrs_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "adrs_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.adrs.id
+  http_method = aws_api_gateway_method.adrs_options.http_method
+  status_code = aws_api_gateway_method_response.adrs_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 # Admin ADRs API
@@ -376,6 +744,13 @@ resource "aws_api_gateway_method" "admin_adrs_post" {
   authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
+resource "aws_api_gateway_method" "admin_adrs_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_adrs.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "admin_adrs_integration" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.admin_adrs.id
@@ -384,6 +759,45 @@ resource "aws_api_gateway_integration" "admin_adrs_integration" {
   integration_http_method = "POST"
   type                   = "AWS_PROXY"
   uri                    = var.adrs_invoke_arn
+}
+
+resource "aws_api_gateway_integration" "admin_adrs_options_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_adrs.id
+  http_method = aws_api_gateway_method.admin_adrs_options.http_method
+  
+  type = "MOCK"
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_method_response" "admin_adrs_options_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_adrs.id
+  http_method = aws_api_gateway_method.admin_adrs_options.http_method
+  status_code = "200"
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "admin_adrs_options_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_adrs.id
+  http_method = aws_api_gateway_method.admin_adrs_options.http_method
+  status_code = aws_api_gateway_method_response.admin_adrs_options_response.status_code
+  
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 resource "aws_lambda_permission" "site_config_permission" {
@@ -406,16 +820,25 @@ resource "aws_lambda_permission" "adrs_permission" {
 resource "aws_api_gateway_deployment" "main" {
   depends_on = [
     aws_api_gateway_integration.skills_integration,
+    aws_api_gateway_integration.skills_options_integration,
     aws_api_gateway_integration.projects_integration,
+    aws_api_gateway_integration.projects_options_integration,
     aws_api_gateway_integration.certifications_integration,
     aws_api_gateway_integration.certifications_options_integration,
     aws_api_gateway_integration.config_integration,
+    aws_api_gateway_integration.config_options_integration,
     aws_api_gateway_integration.admin_config_integration,
+    aws_api_gateway_integration.admin_config_options_integration,
     aws_api_gateway_integration.admin_skills_integration,
+    aws_api_gateway_integration.admin_skills_options_integration,
     aws_api_gateway_integration.admin_projects_integration,
+    aws_api_gateway_integration.admin_projects_options_integration,
     aws_api_gateway_integration.admin_certifications_integration,
+    aws_api_gateway_integration.admin_certifications_options_integration,
     aws_api_gateway_integration.adrs_integration,
-    aws_api_gateway_integration.admin_adrs_integration
+    aws_api_gateway_integration.adrs_options_integration,
+    aws_api_gateway_integration.admin_adrs_integration,
+    aws_api_gateway_integration.admin_adrs_options_integration
   ]
 
   rest_api_id = aws_api_gateway_rest_api.main.id
