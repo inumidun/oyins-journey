@@ -9,7 +9,7 @@ import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground" style={{ backgroundColor: 'hsl(222 47% 6%)' }}>
       <Header />
       <main>
         <HeroSection />

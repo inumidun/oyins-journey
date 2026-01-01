@@ -5,7 +5,9 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* Dark theme is the default - applied to :root */
+  :root,
+  .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 96%;
 
@@ -48,16 +50,58 @@
     --warning: 45 93% 55%;
     --info: 217 91% 60%;
   }
-}
 
-@layer base {
+  /* Light theme - only if explicitly set */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 173 80% 40%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 173 80% 40%;
+
+    /* Status colors */
+    --success: 142 76% 36%;
+    --warning: 45 93% 47%;
+    --info: 217 91% 60%;
+  }
+
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    background-color: hsl(222 47% 6%);
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .font-mono {
@@ -65,7 +109,8 @@
   }
 
   ::selection {
-    @apply bg-primary/30 text-foreground;
+    background-color: hsl(173 80% 50% / 0.3);
+    color: hsl(var(--foreground));
   }
 }
 
@@ -79,7 +124,9 @@
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
     background-image: var(--gradient-accent);
   }
 
@@ -88,7 +135,12 @@
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_30px_hsl(173_80%_50%_/_0.1)];
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    border-color: hsl(173 80% 50% / 0.5);
+    box-shadow: 0 0 30px hsl(173 80% 50% / 0.1);
   }
 
   .pulse-dot {
@@ -101,6 +153,10 @@
 
   .fade-in {
     animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
   }
 }
 
@@ -148,13 +204,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-background;
+  background: hsl(222 47% 6%);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-border rounded-full;
+  background: hsl(222 30% 18%);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
+  background: hsl(215 20% 35%);
 }
