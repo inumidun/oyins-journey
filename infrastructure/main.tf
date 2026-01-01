@@ -52,9 +52,6 @@ variable "use_ssm_password" {
   type        = bool
   default     = true
 }
-  type        = bool
-  default     = false
-}
 
 # Local values for environment-specific naming
 locals {
