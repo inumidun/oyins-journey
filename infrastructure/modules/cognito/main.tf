@@ -122,7 +122,7 @@ resource "aws_cognito_user" "admin_user_ssm" {
   count = var.use_ssm_password ? 1 : 0
   
   user_pool_id = aws_cognito_user_pool.admin_pool.id
-  username     = data.aws_ssm_parameter.admin_email[0].value
+  username     = "admin-${random_string.admin_suffix.result}"
 
   attributes = {
     email          = data.aws_ssm_parameter.admin_email[0].value
@@ -138,7 +138,7 @@ resource "aws_cognito_user" "admin_user_vars" {
   count = !var.use_ssm_password && var.admin_email != null ? 1 : 0
   
   user_pool_id = aws_cognito_user_pool.admin_pool.id
-  username     = var.admin_email
+  username     = "admin-${random_string.admin_suffix.result}"
 
   attributes = {
     email          = var.admin_email
@@ -147,4 +147,11 @@ resource "aws_cognito_user" "admin_user_vars" {
 
   temporary_password = var.admin_temp_password
   message_action     = "SUPPRESS" # Don't send welcome email
+}
+
+# Random string for unique admin username
+resource "random_string" "admin_suffix" {
+  length  = 6
+  special = false
+  upper   = false
 }
