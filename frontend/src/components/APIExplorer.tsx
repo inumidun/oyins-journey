@@ -189,9 +189,14 @@ const APIExplorer = () => {
                     </span>
                   )}
                 </div>
-                <p className="mt-3 text-muted-foreground text-sm">
-                  {selectedEndpoint.description}
-                </p>
+                <div className="mt-3">
+                  <p className="text-muted-foreground text-sm">
+                    {selectedEndpoint.description}
+                  </p>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <span className="font-semibold">Documentation:</span> This endpoint provides {selectedEndpoint.description.toLowerCase()}
+                  </div>
+                </div>
                 {selectedEndpoint.params.length > 0 ? (
                   <div className="mt-4">
                     <p className="text-xs text-muted-foreground mb-2">Query Parameters:</p>
@@ -232,16 +237,26 @@ const APIExplorer = () => {
               </div>
               <div className="p-4 font-mono text-sm max-h-[300px] overflow-y-auto">
                 {loading ? (
-                  <p className="text-muted-foreground">Making request...</p>
-                ) : error ? (
                   <div>
-                    <p className="text-destructive mb-2">Error</p>
+                    <p className="text-muted-foreground">Making request...</p>
+                    <p className="text-xs text-muted-foreground mt-1">Request data will appear here</p>
+                  </div>
+                ) : error ? (
+                  <div role="alert">
+                    <p className="text-destructive mb-2">Error: {error}</p>
                     <pre className="text-foreground whitespace-pre-wrap">{response}</pre>
+                    <p className="text-xs text-muted-foreground mt-2">Response data shows error details</p>
                   </div>
                 ) : response ? (
-                  <pre className="text-foreground whitespace-pre-wrap">{response}</pre>
+                  <div>
+                    <pre className="text-foreground whitespace-pre-wrap">{response}</pre>
+                    <p className="text-xs text-muted-foreground mt-2">Response data received successfully</p>
+                  </div>
                 ) : (
-                  <p className="text-muted-foreground">Click "Try it" to see the response</p>
+                  <div>
+                    <p className="text-muted-foreground">Click "Try it" to see the response</p>
+                    <p className="text-xs text-muted-foreground mt-1">Request and response data will appear here</p>
+                  </div>
                 )}
               </div>
             </div>
