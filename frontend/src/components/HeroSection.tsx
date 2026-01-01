@@ -23,14 +23,14 @@ const HeroSection = () => {
 
   // Use config or fallback to hardcoded values
   const socialLinks = config?.socialLinks || {
-    linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
-    github: 'https://github.com/oyindamola-oladipo',
-    email: 'mailto:hello@oyins-journey.dev'
+    linkedin: 'https://linkedin.com/in/your-linkedin-username',
+    github: 'https://github.com/your-github-username',
+    email: 'mailto:hello@your-domain.com'
   };
 
   const branding = config?.branding || {
-    name: 'Oyin',
-    tagline: 'Cloud Engineer & Solutions Architect'
+    name: 'Your Name',
+    tagline: 'Your Professional Title'
   };
 
   return (

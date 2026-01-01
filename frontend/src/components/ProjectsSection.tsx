@@ -24,8 +24,8 @@ const ProjectsSection = () => {
             status: 'active',
             technologies: ['TypeScript', 'React', 'Terraform', 'Lambda', 'API Gateway', 'DynamoDB', 'S3', 'CloudFront'],
             start_date: '2024-12',
-            repository: 'https://github.com/oyindamola-oladipo/oyins-journey',
-            live_url: 'https://oyins-journey.dev'
+            repository: 'https://github.com/your-github-username/your-repo-name',
+            live_url: 'https://your-domain.com'
           },
           {
             id: 'serverless-event-processor',

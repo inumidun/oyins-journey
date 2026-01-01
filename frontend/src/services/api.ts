@@ -126,16 +126,16 @@ export const siteConfigApi = {
       // Return default config if API fails
       return {
         socialLinks: {
-          linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
-          github: 'https://github.com/oyindamola-oladipo',
-          email: 'mailto:hello@oyins-journey.dev'
+          linkedin: 'https://linkedin.com/in/your-linkedin-username',
+          github: 'https://github.com/your-github-username',
+          email: 'mailto:hello@your-domain.com'
         },
         branding: {
-          name: 'Oyin',
-          tagline: 'Cloud Engineer & Solutions Architect'
+          name: 'Your Name',
+          tagline: 'Your Professional Title'
         },
-        sourceRepoUrl: 'https://github.com/oyindamola-oladipo/oyins-journey',
-        liveApiUrl: 'https://api.oyins-journey.dev'
+        sourceRepoUrl: 'https://github.com/your-github-username/your-repo-name',
+        liveApiUrl: 'https://api.your-domain.com'
       };
     }
   },

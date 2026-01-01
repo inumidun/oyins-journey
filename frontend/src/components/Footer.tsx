@@ -6,9 +6,9 @@ const Footer = () => {
   
   // Use config or fallback to hardcoded values
   const socialLinks = config?.socialLinks || {
-    linkedin: 'https://linkedin.com/in/oyindamola-oladipo',
-    github: 'https://github.com/oyindamola-oladipo',
-    email: 'mailto:hello@oyins-journey.dev'
+    linkedin: 'https://linkedin.com/in/your-linkedin-username',
+    github: 'https://github.com/your-github-username',
+    email: 'mailto:hello@your-domain.com'
   };
 
   return (

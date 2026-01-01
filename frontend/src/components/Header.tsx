@@ -6,8 +6,8 @@ const Header = () => {
   const { config } = useSiteConfig();
   
   // Use config or fallback to hardcoded values
-  const sourceRepoUrl = config?.sourceRepoUrl || 'https://github.com/oyindamola-oladipo/oyins-journey';
-  const liveApiUrl = config?.liveApiUrl || 'https://api.oyins-journey.dev';
+  const sourceRepoUrl = config?.sourceRepoUrl || 'https://github.com/your-github-username/your-repo-name';
+  const liveApiUrl = config?.liveApiUrl || 'https://api.your-domain.com';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">

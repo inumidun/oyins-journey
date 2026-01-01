@@ -3,242 +3,867 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oyin's Journey - Admin</title>
+    <title>Admin Portal | Portfolio Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .section { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .form-group { margin: 15px 0; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-        textarea { height: 100px; resize: vertical; }
-        button { background: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; margin: 5px; }
-        button:hover { background: #2980b9; }
-        button.danger { background: #e74c3c; }
-        button.danger:hover { background: #c0392b; }
-        .tabs { display: flex; margin-bottom: 20px; }
-        .tab { padding: 10px 20px; background: #ecf0f1; border: none; cursor: pointer; margin-right: 5px; }
-        .tab.active { background: #3498db; color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .item-list { margin-top: 20px; }
-        .item { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 4px; border-left: 4px solid #3498db; }
-        .success { color: #27ae60; font-weight: bold; }
-        .error { color: #e74c3c; font-weight: bold; }
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-card: #1a1a1a;
+            --bg-card-hover: #222222;
+            --border-color: #2a2a2a;
+            --border-hover: #3a3a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-primary: #22c55e;
+            --accent-primary-hover: #16a34a;
+            --accent-glow: rgba(34, 197, 94, 0.2);
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-orange: #f97316;
+            --accent-yellow: #eab308;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(circle at 25% 25%, var(--accent-glow) 0%, transparent 50%),
+                              radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(to right, var(--bg-secondary), var(--bg-card), var(--bg-secondary));
+            border-bottom: 1px solid var(--border-color);
+            padding: 24px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        
+        .logo-text h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .logo-text p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Navigation Tabs */
+        .tabs-container {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
+            position: sticky;
+            top: 97px;
+            z-index: 99;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 16px 0;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        
+        .tab.active {
+            background: var(--accent-glow);
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        
+        .tab-icon {
+            font-size: 1rem;
+        }
+        
+        /* Main Content */
+        main {
+            padding: 32px 0;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .card-icon.blue { background: rgba(59, 130, 246, 0.2); }
+        .card-icon.green { background: rgba(34, 197, 94, 0.2); }
+        .card-icon.purple { background: rgba(168, 85, 247, 0.2); }
+        .card-icon.orange { background: rgba(249, 115, 22, 0.2); }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 0;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: var(--text-muted);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        
+        select option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--border-hover);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Messages */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.875rem;
+            display: none;
+        }
+        
+        .message.success {
+            display: block;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            
+            .tabs {
+                justify-content: flex-start;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🛠️ Oyin's Journey - Admin Panel</h1>
-            <p>Manage your CV data without touching code</p>
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('skills')">Skills</button>
-            <button class="tab" onclick="showTab('projects')">Projects</button>
-            <button class="tab" onclick="showTab('certifications')">Certifications</button>
-            <button class="tab" onclick="showTab('adrs')">ADRs</button>
-        </div>
-
-        <!-- Skills Tab -->
-        <div id="skills" class="tab-content active">
-            <div class="section">
-                <h2>Add New Skill</h2>
-                <form id="skillForm">
-                    <div class="form-group">
-                        <label>Skill Name</label>
-                        <input type="text" id="skillName" required>
+    <div class="bg-pattern"></div>
+    
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">⚡</div>
+                    <div class="logo-text">
+                        <h1>Admin Portal</h1>
+                        <p>Manage your portfolio content</p>
                     </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <select id="skillCategory" required>
-                            <option value="">Select Category</option>
-                            <option value="cloud">Cloud</option>
-                            <option value="devops">DevOps</option>
-                            <option value="database">Database</option>
-                            <option value="programming">Programming</option>
-                            <option value="frontend">Frontend</option>
-                        </select>
+                </div>
+                <div class="user-section">
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        <span>All Systems Online</span>
                     </div>
-                    <div class="form-group">
-                        <label>Proficiency</label>
-                        <select id="skillProficiency" required>
-                            <option value="">Select Level</option>
-                            <option value="beginner">Beginner</option>
-                            <option value="intermediate">Intermediate</option>
-                            <option value="advanced">Advanced</option>
-                            <option value="expert">Expert</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Technologies (comma-separated)</label>
-                        <input type="text" id="skillTechnologies" placeholder="Python, AWS, Docker">
-                    </div>
-                    <div class="form-group">
-                        <label>Evidence Links (comma-separated)</label>
-                        <textarea id="skillEvidence" placeholder="https://github.com/project1, https://demo.example.com"></textarea>
-                    </div>
-                    <button type="submit">Add Skill</button>
-                </form>
-                <div id="skillMessage"></div>
+                </div>
             </div>
         </div>
-
-        <!-- Certifications Tab -->
-        <div id="certifications" class="tab-content">
-            <div class="section">
-                <h2>Add New Certification</h2>
-                <form id="certForm">
-                    <div class="form-group">
-                        <label>Certification Name</label>
-                        <input type="text" id="certName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Provider</label>
-                        <select id="certProvider" required>
-                            <option value="">Select Provider</option>
-                            <option value="aws">AWS</option>
-                            <option value="azure">Microsoft Azure</option>
-                            <option value="gcp">Google Cloud</option>
-                            <option value="hashicorp">HashiCorp</option>
-                            <option value="kubernetes">CNCF/Kubernetes</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Earned Date</label>
-                        <input type="date" id="certEarnedDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Expiry Date</label>
-                        <input type="date" id="certExpiryDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Credential ID</label>
-                        <input type="text" id="certCredentialId">
-                    </div>
-                    <div class="form-group">
-                        <label>Verification URL</label>
-                        <input type="url" id="certVerificationUrl">
-                    </div>
-                    <div class="form-group">
-                        <label>Skills Demonstrated (comma-separated)</label>
-                        <textarea id="certSkills" placeholder="Cloud Architecture, Security, Cost Optimization"></textarea>
-                    </div>
-                    <button type="submit">Add Certification</button>
-                </form>
-                <div id="certMessage"></div>
-            </div>
-        </div>
-
-        <!-- Projects Tab -->
-        <div id="projects" class="tab-content">
-            <div class="section">
-                <h2>Add New Project</h2>
-                <form id="projectForm">
-                    <div class="form-group">
-                        <label>Project Name</label>
-                        <input type="text" id="projectName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="projectDescription" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Technologies (comma-separated)</label>
-                        <input type="text" id="projectTechnologies" placeholder="AWS Lambda, DynamoDB, React">
-                    </div>
-                    <div class="form-group">
-                        <label>Start Date</label>
-                        <input type="date" id="projectStartDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="projectStatus" required>
-                            <option value="">Select Status</option>
-                            <option value="active">Active</option>
-                            <option value="completed">Completed</option>
-                            <option value="on-hold">On Hold</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>GitHub URL</label>
-                        <input type="url" id="projectGithubUrl">
-                    </div>
-                    <div class="form-group">
-                        <label>Live URL</label>
-                        <input type="url" id="projectLiveUrl">
-                    </div>
-                    <button type="submit">Add Project</button>
-                </form>
-                <div id="projectMessage"></div>
-            </div>
-        </div>
-
-        <!-- ADRs Tab -->
-        <div id="adrs" class="tab-content">
-            <div class="section">
-                <h2>Add Architecture Decision Record</h2>
-                <form id="adrForm">
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input type="text" id="adrTitle" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Decision</label>
-                        <input type="text" id="adrDecision" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Context</label>
-                        <textarea id="adrContext" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Options Considered (comma-separated)</label>
-                        <input type="text" id="adrOptions" placeholder="Option A, Option B, Option C">
-                    </div>
-                    <div class="form-group">
-                        <label>Decision Rationale</label>
-                        <textarea id="adrRationale" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Trade-offs (comma-separated)</label>
-                        <input type="text" id="adrTradeoffs" placeholder="Pro 1, Con 1, Pro 2">
-                    </div>
-                    <div class="form-group">
-                        <label>AWS Services (comma-separated)</label>
-                        <input type="text" id="adrServices" placeholder="Lambda, DynamoDB, API Gateway">
-                    </div>
-                    <button type="submit">Add ADR</button>
-                </form>
-                <div id="adrMessage"></div>
+    </header>
+    
+    <!-- Navigation Tabs -->
+    <div class="tabs-container">
+        <div class="container">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('dashboard')">
+                    <span class="tab-icon">📊</span> Dashboard
+                </button>
+                <button class="tab" onclick="showTab('skills')">
+                    <span class="tab-icon">💡</span> Skills
+                </button>
+                <button class="tab" onclick="showTab('projects')">
+                    <span class="tab-icon">🚀</span> Projects
+                </button>
+                <button class="tab" onclick="showTab('certifications')">
+                    <span class="tab-icon">🏆</span> Certifications
+                </button>
+                <button class="tab" onclick="showTab('adrs')">
+                    <span class="tab-icon">📋</span> ADRs
+                </button>
+                <button class="tab" onclick="showTab('settings')">
+                    <span class="tab-icon">⚙️</span> Site Settings
+                </button>
             </div>
         </div>
     </div>
+    
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.2);">💡</div>
+                        </div>
+                        <div class="stat-value" id="skillsCount">-</div>
+                        <div class="stat-label">Total Skills</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: rgba(168, 85, 247, 0.2);">🚀</div>
+                        </div>
+                        <div class="stat-value" id="projectsCount">-</div>
+                        <div class="stat-label">Projects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: rgba(34, 197, 94, 0.2);">🏆</div>
+                        </div>
+                        <div class="stat-value" id="certsCount">-</div>
+                        <div class="stat-label">Certifications</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon" style="background: rgba(249, 115, 22, 0.2);">📋</div>
+                        </div>
+                        <div class="stat-value" id="adrsCount">-</div>
+                        <div class="stat-label">Architecture Decisions</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">🎯</div>
+                        <div>
+                            <div class="card-title">Quick Start Guide</div>
+                            <div class="card-description">Get started managing your portfolio</div>
+                        </div>
+                    </div>
+                    <div style="color: var(--text-secondary); line-height: 1.8;">
+                        <p style="margin-bottom: 16px;">Welcome to your portfolio admin panel! Here's how to get started:</p>
+                        <ol style="padding-left: 20px;">
+                            <li style="margin-bottom: 8px;"><strong style="color: var(--text-primary);">Add Skills</strong> - Showcase your technical expertise</li>
+                            <li style="margin-bottom: 8px;"><strong style="color: var(--text-primary);">Add Projects</strong> - Display your development work</li>
+                            <li style="margin-bottom: 8px;"><strong style="color: var(--text-primary);">Add Certifications</strong> - Highlight your credentials</li>
+                            <li style="margin-bottom: 8px;"><strong style="color: var(--text-primary);">Document ADRs</strong> - Record architecture decisions</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills Tab -->
+            <div id="skills" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon blue">💡</div>
+                        <div>
+                            <div class="card-title">Add New Skill</div>
+                            <div class="card-description">Showcase your technical expertise</div>
+                        </div>
+                    </div>
+                    <form id="skillForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Skill Name</label>
+                                <input type="text" id="skillName" placeholder="e.g., AWS Lambda" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="skillCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="cloud">Cloud</option>
+                                    <option value="devops">DevOps</option>
+                                    <option value="database">Database</option>
+                                    <option value="programming">Programming</option>
+                                    <option value="frontend">Frontend</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Proficiency Level</label>
+                                <select id="skillProficiency" required>
+                                    <option value="">Select Level</option>
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                    <option value="expert">Expert</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Technologies (comma-separated)</label>
+                                <input type="text" id="skillTechnologies" placeholder="Python, AWS, Docker">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Evidence Links (comma-separated)</label>
+                                <textarea id="skillEvidence" placeholder="https://github.com/project1, https://demo.example.com"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">✨ Add Skill</button>
+                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                        </div>
+                    </form>
+                    <div id="skillMessage" class="message"></div>
+                </div>
+            </div>
+
+            <!-- Projects Tab -->
+            <div id="projects" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon purple">🚀</div>
+                        <div>
+                            <div class="card-title">Add New Project</div>
+                            <div class="card-description">Showcase your development work</div>
+                        </div>
+                    </div>
+                    <form id="projectForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Project Name</label>
+                                <input type="text" id="projectName" placeholder="e.g., Portfolio Website" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="projectStatus" required>
+                                    <option value="">Select Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="on-hold">On Hold</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Description</label>
+                                <textarea id="projectDescription" placeholder="Describe your project..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Technologies (comma-separated)</label>
+                                <input type="text" id="projectTechnologies" placeholder="AWS Lambda, DynamoDB, React">
+                            </div>
+                            <div class="form-group">
+                                <label>Start Date</label>
+                                <input type="date" id="projectStartDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>GitHub URL</label>
+                                <input type="url" id="projectGithubUrl" placeholder="https://github.com/...">
+                            </div>
+                            <div class="form-group">
+                                <label>Live URL</label>
+                                <input type="url" id="projectLiveUrl" placeholder="https://...">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">🚀 Add Project</button>
+                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                        </div>
+                    </form>
+                    <div id="projectMessage" class="message"></div>
+                </div>
+            </div>
+
+            <!-- Certifications Tab -->
+            <div id="certifications" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">🏆</div>
+                        <div>
+                            <div class="card-title">Add New Certification</div>
+                            <div class="card-description">Highlight your professional credentials</div>
+                        </div>
+                    </div>
+                    <form id="certForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Certification Name</label>
+                                <input type="text" id="certName" placeholder="e.g., AWS Solutions Architect" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Provider</label>
+                                <select id="certProvider" required>
+                                    <option value="">Select Provider</option>
+                                    <option value="aws">AWS</option>
+                                    <option value="azure">Microsoft Azure</option>
+                                    <option value="gcp">Google Cloud</option>
+                                    <option value="hashicorp">HashiCorp</option>
+                                    <option value="kubernetes">CNCF/Kubernetes</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Earned Date</label>
+                                <input type="date" id="certEarnedDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Expiry Date</label>
+                                <input type="date" id="certExpiryDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Credential ID</label>
+                                <input type="text" id="certCredentialId" placeholder="ABC123XYZ">
+                            </div>
+                            <div class="form-group">
+                                <label>Verification URL</label>
+                                <input type="url" id="certVerificationUrl" placeholder="https://credly.com/...">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Skills Demonstrated (comma-separated)</label>
+                                <textarea id="certSkills" placeholder="Cloud Architecture, Security, Cost Optimization"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">🏆 Add Certification</button>
+                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                        </div>
+                    </form>
+                    <div id="certMessage" class="message"></div>
+                </div>
+            </div>
+
+            <!-- ADRs Tab -->
+            <div id="adrs" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon orange">📋</div>
+                        <div>
+                            <div class="card-title">Add Architecture Decision Record</div>
+                            <div class="card-description">Document your technical decisions</div>
+                        </div>
+                    </div>
+                    <form id="adrForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Title</label>
+                                <input type="text" id="adrTitle" placeholder="e.g., Use DynamoDB for data storage" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Decision</label>
+                                <input type="text" id="adrDecision" placeholder="Brief decision statement" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Context</label>
+                                <textarea id="adrContext" placeholder="Describe the context and problem..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Options Considered (comma-separated)</label>
+                                <input type="text" id="adrOptions" placeholder="Option A, Option B, Option C">
+                            </div>
+                            <div class="form-group">
+                                <label>AWS Services (comma-separated)</label>
+                                <input type="text" id="adrServices" placeholder="Lambda, DynamoDB, API Gateway">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Decision Rationale</label>
+                                <textarea id="adrRationale" placeholder="Explain why this decision was made..." required></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Trade-offs (comma-separated)</label>
+                                <input type="text" id="adrTradeoffs" placeholder="Pro 1, Con 1, Pro 2">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">📋 Add ADR</button>
+                            <button type="reset" class="btn btn-secondary">Clear Form</button>
+                        </div>
+                    </form>
+                    <div id="adrMessage" class="message"></div>
+                </div>
+            </div>
+            
+            <!-- Site Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(34, 197, 94, 0.2);">⚙️</div>
+                        <div>
+                            <div class="card-title">Site Configuration</div>
+                            <div class="card-description">Manage your social links and site URLs</div>
+                        </div>
+                    </div>
+                    <form id="settingsForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>LinkedIn URL</label>
+                                <input type="url" id="linkedinUrl" placeholder="https://linkedin.com/in/your-username">
+                            </div>
+                            <div class="form-group">
+                                <label>GitHub URL</label>
+                                <input type="url" id="githubUrl" placeholder="https://github.com/your-username">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="emailAddress" placeholder="hello@your-domain.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Source Repository URL</label>
+                                <input type="url" id="sourceRepoUrl" placeholder="https://github.com/your-username/your-repo">
+                            </div>
+                            <div class="form-group">
+                                <label>Live API URL</label>
+                                <input type="url" id="liveApiUrl" placeholder="https://api.your-domain.com">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadCurrentSettings()">🔄 Reload Current</button>
+                        </div>
+                    </form>
+                    <div id="settingsMessage" class="message"></div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: rgba(59, 130, 246, 0.2);">ℹ️</div>
+                        <div>
+                            <div class="card-title">Branding Information</div>
+                            <div class="card-description">These are fixed in the code for consistency</div>
+                        </div>
+                    </div>
+                    <div style="color: var(--text-secondary); line-height: 1.8;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 4px;">Name</div>
+                                <div style="font-weight: 600; color: var(--text-primary);">Oyin</div>
+                            </div>
+                            <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 4px;">Tagline</div>
+                                <div style="font-weight: 600; color: var(--text-primary);">Cloud Engineer & Solutions Architect</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 16px; font-size: 0.875rem;">
+                            <strong style="color: var(--text-primary);">Note:</strong> The name and tagline are hardcoded for brand consistency. 
+                            Only social links and URLs can be updated through this interface.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script>
-        const API_BASE_URL = 'https://your-api-gateway-url.amazonaws.com/prod';
+        const API_BASE_URL = 'https://z4wix8ycye.execute-api.us-east-1.amazonaws.com/dev';
 
         function showTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected tab
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            event.target.closest('.tab').classList.add('active');
         }
 
         function showMessage(elementId, message, isError = false) {
             const element = document.getElementById(elementId);
             element.textContent = message;
-            element.className = isError ? 'error' : 'success';
-            setTimeout(() => element.textContent = '', 5000);
+            element.className = 'message ' + (isError ? 'error' : 'success');
+            setTimeout(() => { element.className = 'message'; element.textContent = ''; }, 5000);
         }
 
         function generateId(prefix) {
@@ -248,39 +873,61 @@
         // Skills Form
         document.getElementById('skillForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const skillData = {
                 skill_id: generateId('skill'),
                 name: document.getElementById('skillName').value,
                 category: document.getElementById('skillCategory').value,
                 proficiency: document.getElementById('skillProficiency').value,
-                technologies: document.getElementById('skillTechnologies').value.split(',').map(t => t.trim()),
+                technologies: document.getElementById('skillTechnologies').value.split(',').map(t => t.trim()).filter(t => t),
                 evidence_links: document.getElementById('skillEvidence').value.split(',').map(l => l.trim()).filter(l => l),
                 usage_count: 1
             };
-
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/skills`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(skillData)
                 });
-
                 if (response.ok) {
-                    showMessage('skillMessage', 'Skill added successfully!');
+                    showMessage('skillMessage', '✅ Skill added successfully!');
                     document.getElementById('skillForm').reset();
-                } else {
-                    throw new Error('Failed to add skill');
-                }
+                } else { throw new Error('Failed to add skill'); }
             } catch (error) {
-                showMessage('skillMessage', 'Error adding skill: ' + error.message, true);
+                showMessage('skillMessage', '❌ Error: ' + error.message, true);
+            }
+        });
+
+        // Projects Form
+        document.getElementById('projectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const projectData = {
+                project_id: generateId('project'),
+                name: document.getElementById('projectName').value,
+                description: document.getElementById('projectDescription').value,
+                technologies: document.getElementById('projectTechnologies').value.split(',').map(t => t.trim()).filter(t => t),
+                start_date: document.getElementById('projectStartDate').value,
+                status: document.getElementById('projectStatus').value,
+                github_url: document.getElementById('projectGithubUrl').value,
+                live_url: document.getElementById('projectLiveUrl').value
+            };
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/projects`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(projectData)
+                });
+                if (response.ok) {
+                    showMessage('projectMessage', '✅ Project added successfully!');
+                    document.getElementById('projectForm').reset();
+                } else { throw new Error('Failed to add project'); }
+            } catch (error) {
+                showMessage('projectMessage', '❌ Error: ' + error.message, true);
             }
         });
 
         // Certifications Form
         document.getElementById('certForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const certData = {
                 cert_id: generateId('cert'),
                 name: document.getElementById('certName').value,
@@ -290,93 +937,119 @@
                 status: 'active',
                 credential_id: document.getElementById('certCredentialId').value,
                 verification_url: document.getElementById('certVerificationUrl').value,
-                skills_demonstrated: document.getElementById('certSkills').value.split(',').map(s => s.trim())
+                skills_demonstrated: document.getElementById('certSkills').value.split(',').map(s => s.trim()).filter(s => s)
             };
-
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/certifications`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(certData)
                 });
-
                 if (response.ok) {
-                    showMessage('certMessage', 'Certification added successfully!');
+                    showMessage('certMessage', '✅ Certification added successfully!');
                     document.getElementById('certForm').reset();
-                } else {
-                    throw new Error('Failed to add certification');
-                }
+                } else { throw new Error('Failed to add certification'); }
             } catch (error) {
-                showMessage('certMessage', 'Error adding certification: ' + error.message, true);
-            }
-        });
-
-        // Projects Form
-        document.getElementById('projectForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const projectData = {
-                project_id: generateId('project'),
-                name: document.getElementById('projectName').value,
-                description: document.getElementById('projectDescription').value,
-                technologies: document.getElementById('projectTechnologies').value.split(',').map(t => t.trim()),
-                start_date: document.getElementById('projectStartDate').value,
-                status: document.getElementById('projectStatus').value,
-                github_url: document.getElementById('projectGithubUrl').value,
-                live_url: document.getElementById('projectLiveUrl').value
-            };
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/admin/projects`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(projectData)
-                });
-
-                if (response.ok) {
-                    showMessage('projectMessage', 'Project added successfully!');
-                    document.getElementById('projectForm').reset();
-                } else {
-                    throw new Error('Failed to add project');
-                }
-            } catch (error) {
-                showMessage('projectMessage', 'Error adding project: ' + error.message, true);
+                showMessage('certMessage', '❌ Error: ' + error.message, true);
             }
         });
 
         // ADRs Form
         document.getElementById('adrForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const adrData = {
                 adr_id: generateId('adr'),
                 title: document.getElementById('adrTitle').value,
                 decision: document.getElementById('adrDecision').value,
                 context: document.getElementById('adrContext').value,
-                options_considered: document.getElementById('adrOptions').value.split(',').map(o => o.trim()),
+                options_considered: document.getElementById('adrOptions').value.split(',').map(o => o.trim()).filter(o => o),
                 decision_rationale: document.getElementById('adrRationale').value,
-                tradeoffs: document.getElementById('adrTradeoffs').value.split(',').map(t => t.trim()),
-                aws_services: document.getElementById('adrServices').value.split(',').map(s => s.trim()),
+                tradeoffs: document.getElementById('adrTradeoffs').value.split(',').map(t => t.trim()).filter(t => t),
+                aws_services: document.getElementById('adrServices').value.split(',').map(s => s.trim()).filter(s => s),
                 date: new Date().toISOString().split('T')[0],
                 status: 'accepted'
             };
-
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/adrs`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(adrData)
                 });
-
                 if (response.ok) {
-                    showMessage('adrMessage', 'ADR added successfully!');
+                    showMessage('adrMessage', '✅ ADR added successfully!');
                     document.getElementById('adrForm').reset();
+                } else { throw new Error('Failed to add ADR'); }
+            } catch (error) {
+                showMessage('adrMessage', '❌ Error: ' + error.message, true);
+            }
+        });
+
+        // Site Settings Functions
+        async function loadCurrentSettings() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/config`);
+                if (response.ok) {
+                    const config = await response.json();
+                    
+                    // Populate form fields
+                    document.getElementById('linkedinUrl').value = config.socialLinks?.linkedin || '';
+                    document.getElementById('githubUrl').value = config.socialLinks?.github || '';
+                    
+                    // Handle email - remove mailto: prefix if present
+                    const email = config.socialLinks?.email || '';
+                    document.getElementById('emailAddress').value = email.replace('mailto:', '');
+                    
+                    document.getElementById('sourceRepoUrl').value = config.sourceRepoUrl || '';
+                    document.getElementById('liveApiUrl').value = config.liveApiUrl || '';
+                    
+                    showMessage('settingsMessage', '✅ Current settings loaded!');
                 } else {
-                    throw new Error('Failed to add ADR');
+                    throw new Error('Failed to load settings');
                 }
             } catch (error) {
-                showMessage('adrMessage', 'Error adding ADR: ' + error.message, true);
+                showMessage('settingsMessage', '❌ Error loading settings: ' + error.message, true);
             }
+        }
+
+        // Site Settings Form
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('emailAddress').value;
+            const settingsData = {
+                socialLinks: {
+                    linkedin: document.getElementById('linkedinUrl').value,
+                    github: document.getElementById('githubUrl').value,
+                    email: email ? `mailto:${email}` : ''
+                },
+                sourceRepoUrl: document.getElementById('sourceRepoUrl').value,
+                liveApiUrl: document.getElementById('liveApiUrl').value,
+                branding: {
+                    name: 'Oyin',
+                    tagline: 'Cloud Engineer & Solutions Architect'
+                }
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/config`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settingsData)
+                });
+                
+                if (response.ok) {
+                    showMessage('settingsMessage', '✅ Settings saved successfully!');
+                } else {
+                    throw new Error('Failed to save settings');
+                }
+            } catch (error) {
+                showMessage('settingsMessage', '❌ Error saving settings: ' + error.message, true);
+            }
+        });
+
+        // Load current settings when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentSettings();
         });
     </script>
 </body>
