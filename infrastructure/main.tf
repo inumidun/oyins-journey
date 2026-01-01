@@ -119,6 +119,8 @@ module "api" {
   projects_function_name      = module.lambda.projects_function_name
   certifications_invoke_arn   = module.lambda.certifications_invoke_arn
   certifications_function_name = module.lambda.certifications_function_name
+  adrs_invoke_arn             = module.lambda.adrs_invoke_arn
+  adrs_function_name          = module.lambda.adrs_function_name
   site_config_invoke_arn      = module.lambda.site_config_invoke_arn
   site_config_function_name   = module.lambda.site_config_function_name
 }

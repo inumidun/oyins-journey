@@ -262,10 +262,142 @@ resource "aws_api_gateway_integration" "admin_config_integration" {
   uri                    = var.site_config_invoke_arn
 }
 
+# Admin Skills API
+resource "aws_api_gateway_resource" "admin_skills" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "skills"
+}
+
+resource "aws_api_gateway_method" "admin_skills_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_skills.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+}
+
+resource "aws_api_gateway_integration" "admin_skills_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_skills.id
+  http_method = aws_api_gateway_method.admin_skills_post.http_method
+  
+  integration_http_method = "POST"
+  type                   = "AWS_PROXY"
+  uri                    = var.skills_invoke_arn
+}
+
+# Admin Projects API
+resource "aws_api_gateway_resource" "admin_projects" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "projects"
+}
+
+resource "aws_api_gateway_method" "admin_projects_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_projects.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+}
+
+resource "aws_api_gateway_integration" "admin_projects_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_projects.id
+  http_method = aws_api_gateway_method.admin_projects_post.http_method
+  
+  integration_http_method = "POST"
+  type                   = "AWS_PROXY"
+  uri                    = var.projects_invoke_arn
+}
+
+# Admin Certifications API
+resource "aws_api_gateway_resource" "admin_certifications" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "certifications"
+}
+
+resource "aws_api_gateway_method" "admin_certifications_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_certifications.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+}
+
+resource "aws_api_gateway_integration" "admin_certifications_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_certifications.id
+  http_method = aws_api_gateway_method.admin_certifications_post.http_method
+  
+  integration_http_method = "POST"
+  type                   = "AWS_PROXY"
+  uri                    = var.certifications_invoke_arn
+}
+
+# ADRs API (public read)
+resource "aws_api_gateway_resource" "adrs" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "adrs"
+}
+
+resource "aws_api_gateway_method" "adrs_get" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.adrs.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "adrs_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.adrs.id
+  http_method = aws_api_gateway_method.adrs_get.http_method
+  
+  integration_http_method = "POST"
+  type                   = "AWS_PROXY"
+  uri                    = var.adrs_invoke_arn
+}
+
+# Admin ADRs API
+resource "aws_api_gateway_resource" "admin_adrs" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.admin.id
+  path_part   = "adrs"
+}
+
+resource "aws_api_gateway_method" "admin_adrs_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.admin_adrs.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+}
+
+resource "aws_api_gateway_integration" "admin_adrs_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.admin_adrs.id
+  http_method = aws_api_gateway_method.admin_adrs_post.http_method
+  
+  integration_http_method = "POST"
+  type                   = "AWS_PROXY"
+  uri                    = var.adrs_invoke_arn
+}
+
 resource "aws_lambda_permission" "site_config_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = var.site_config_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "adrs_permission" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = var.adrs_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
 }
@@ -278,7 +410,12 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_integration.certifications_integration,
     aws_api_gateway_integration.certifications_options_integration,
     aws_api_gateway_integration.config_integration,
-    aws_api_gateway_integration.admin_config_integration
+    aws_api_gateway_integration.admin_config_integration,
+    aws_api_gateway_integration.admin_skills_integration,
+    aws_api_gateway_integration.admin_projects_integration,
+    aws_api_gateway_integration.admin_certifications_integration,
+    aws_api_gateway_integration.adrs_integration,
+    aws_api_gateway_integration.admin_adrs_integration
   ]
 
   rest_api_id = aws_api_gateway_rest_api.main.id

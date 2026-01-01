@@ -53,6 +53,16 @@ variable "site_config_function_name" {
   type        = string
 }
 
+variable "adrs_invoke_arn" {
+  description = "ADRs Lambda function invoke ARN"
+  type        = string
+}
+
+variable "adrs_function_name" {
+  description = "ADRs Lambda function name"
+  type        = string
+}
+
 variable "cognito_user_pool_arn" {
   description = "Cognito User Pool ARN for API authorization"
   type        = string

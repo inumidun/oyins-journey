@@ -107,78 +107,20 @@ def enrich_project_with_github_data(project):
 
 def lambda_handler(event, context):
     try:
-        # Check if specific project ID requested
-        path_params = event.get('pathParameters') or {}
-        project_id = path_params.get('id')
+        http_method = event.get('httpMethod', 'GET')
         
-        # Parse query parameters
-        query_params = event.get('queryStringParameters') or {}
-        include_github_data = query_params.get('include_github', 'true').lower() == 'true'
-        
-        if project_id:
-            # Get specific project
-            response = projects_table.get_item(
-                Key={'project_id': project_id}
-            )
-            
-            if 'Item' not in response:
-                return {
-                    'statusCode': 404,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    },
-                    'body': json.dumps({
-                        'error': 'Project not found'
-                    })
-                }
-            
-            project = response['Item']
-            
-            # Enrich with GitHub data if requested
-            if include_github_data:
-                project = enrich_project_with_github_data(project)
-            
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps(project)
-            }
+        if http_method == 'GET':
+            return handle_get_projects(event)
+        elif http_method == 'POST':
+            return handle_create_project(event)
         else:
-            # Get all projects
-            response = projects_table.scan()
-            projects = response['Items']
-            
-            # Enrich with GitHub data if requested
-            if include_github_data:
-                enriched_projects = []
-                for project in projects:
-                    try:
-                        enriched_project = enrich_project_with_github_data(project)
-                        enriched_projects.append(enriched_project)
-                    except Exception as e:
-                        # If enrichment fails for one project, continue with others
-                        print(f"Failed to enrich project {project.get('project_id', 'unknown')}: {str(e)}")
-                        enriched_projects.append(project)
-                projects = enriched_projects
-            
-            # Sort by date (newest first)
-            projects.sort(key=lambda x: x.get('start_date', ''), reverse=True)
-            
             return {
-                'statusCode': 200,
+                'statusCode': 405,
                 'headers': {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                'body': json.dumps({
-                    'projects': projects,
-                    'count': len(projects),
-                    'enriched': include_github_data
-                })
+                'body': json.dumps({'error': 'Method not allowed'})
             }
             
     except Exception as e:
@@ -192,5 +134,154 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'error': 'Internal server error',
                 'message': str(e) if os.environ.get('DEBUG') else 'An error occurred'
+            })
+        }
+
+def handle_get_projects(event):
+    # Check if specific project ID requested
+    path_params = event.get('pathParameters') or {}
+    project_id = path_params.get('id')
+    
+    # Parse query parameters
+    query_params = event.get('queryStringParameters') or {}
+    include_github_data = query_params.get('include_github', 'true').lower() == 'true'
+    
+    if project_id:
+        # Get specific project
+        response = projects_table.get_item(
+            Key={'project_id': project_id}
+        )
+        
+        if 'Item' not in response:
+            return {
+                'statusCode': 404,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'error': 'Project not found'
+                })
+            }
+        
+        project = response['Item']
+        
+        # Enrich with GitHub data if requested
+        if include_github_data:
+            project = enrich_project_with_github_data(project)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps(project)
+        }
+    else:
+        # Get all projects
+        response = projects_table.scan()
+        projects = response['Items']
+        
+        # Enrich with GitHub data if requested
+        if include_github_data:
+            enriched_projects = []
+            for project in projects:
+                try:
+                    enriched_project = enrich_project_with_github_data(project)
+                    enriched_projects.append(enriched_project)
+                except Exception as e:
+                    # If enrichment fails for one project, continue with others
+                    print(f"Failed to enrich project {project.get('project_id', 'unknown')}: {str(e)}")
+                    enriched_projects.append(project)
+            projects = enriched_projects
+        
+        # Sort by date (newest first)
+        projects.sort(key=lambda x: x.get('start_date', ''), reverse=True)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'projects': projects,
+                'count': len(projects),
+                'enriched': include_github_data
+            })
+        }
+
+def handle_create_project(event):
+    # Parse request body
+    try:
+        body = json.loads(event.get('body', '{}'))
+    except json.JSONDecodeError:
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': 'Invalid JSON in request body'})
+        }
+    
+    # Validate required fields
+    required_fields = ['name', 'description', 'status']
+    for field in required_fields:
+        if not body.get(field):
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': f'Missing required field: {field}'})
+            }
+    
+    # Create project item
+    import uuid
+    project_id = body.get('project_id') or f"project-{uuid.uuid4().hex[:8]}"
+    
+    project_item = {
+        'project_id': project_id,
+        'name': body['name'],
+        'description': body['description'],
+        'status': body['status'],
+        'technologies': body.get('technologies', []),
+        'start_date': body.get('start_date', datetime.now().strftime('%Y-%m-%d')),
+        'github_url': body.get('github_url', ''),
+        'live_url': body.get('live_url', ''),
+        'created_at': datetime.now().isoformat(),
+        'updated_at': datetime.now().isoformat()
+    }
+    
+    # Save to DynamoDB
+    try:
+        projects_table.put_item(Item=project_item)
+        
+        return {
+            'statusCode': 201,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'message': 'Project created successfully',
+                'project': project_item
+            })
+        }
+        
+    except Exception as e:
+        print(f"Error creating project: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'error': 'Failed to create project',
+                'message': str(e) if os.environ.get('DEBUG') else 'Database error'
             })
         }
