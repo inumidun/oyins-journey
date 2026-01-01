@@ -37,12 +37,23 @@ variable "environment" {
 variable "admin_email" {
   description = "Admin user email for Cognito"
   type        = string
+  default     = null
 }
 
 variable "admin_temp_password" {
   description = "Temporary password for admin user"
   type        = string
   sensitive   = true
+  default     = null
+}
+
+variable "use_ssm_password" {
+  description = "Use password from SSM Parameter Store instead of variable"
+  type        = bool
+  default     = true
+}
+  type        = bool
+  default     = false
 }
 
 # Local values for environment-specific naming
@@ -83,6 +94,7 @@ module "cognito" {
   environment          = var.environment
   admin_email          = var.admin_email
   admin_temp_password  = var.admin_temp_password
+  use_ssm_password     = var.use_ssm_password
 }
 
 # API Module

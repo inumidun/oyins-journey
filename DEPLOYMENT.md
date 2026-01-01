@@ -1,23 +1,119 @@
-# Deployment Guide
+# Secure Deployment Guide
 
-## Prerequisites
+## Most Secure Approach: AWS Systems Manager Parameter Store
 
-1. AWS CLI configured with appropriate permissions
-2. Terraform installed (>= 1.0)
-3. Node.js and npm installed
+### Step 1: Store Credentials Securely in AWS Parameter Store
 
-## Infrastructure Deployment
+**NEVER hardcode credentials!** Instead, store them securely in AWS Systems Manager Parameter Store:
 
-### 1. Deploy Infrastructure with Cognito
+```bash
+# Set your environment and email
+ENVIRONMENT="dev"  # or "prod"
+PROJECT_NAME="oyins-journey"
+ADMIN_EMAIL="your-email@example.com"
+
+# Store admin email (standard parameter)
+aws ssm put-parameter \
+  --name "/${PROJECT_NAME}-${ENVIRONMENT}/admin/email" \
+  --value "${ADMIN_EMAIL}" \
+  --type "String" \
+  --description "Admin email for Cognito user pool"
+
+# Store temporary password (encrypted parameter)
+aws ssm put-parameter \
+  --name "/${PROJECT_NAME}-${ENVIRONMENT}/admin/temp-password" \
+  --value "YourSecurePassword123!" \
+  --type "SecureString" \
+  --description "Temporary password for admin user" \
+  --key-id "alias/aws/ssm"
+```
+
+### Step 2: Deploy Infrastructure (Secure Mode)
 
 ```bash
 cd infrastructure
+
+# Initialize Terraform
 terraform init
-terraform plan -var="environment=dev" -var="admin_email=your-email@example.com" -var="admin_temp_password=TempPassword123!"
-terraform apply -var="environment=dev" -var="admin_email=your-email@example.com" -var="admin_temp_password=TempPassword123!"
+
+# Plan deployment (using SSM parameters by default)
+terraform plan -var="environment=${ENVIRONMENT}"
+
+# Apply deployment (no sensitive data in command line!)
+terraform apply -var="environment=${ENVIRONMENT}"
 ```
 
-### 2. Get Infrastructure Outputs
+### Step 3: Alternative - Environment-Specific tfvars Files
+
+Create environment-specific variable files (add to .gitignore):
+
+```bash
+# Create terraform.tfvars (NEVER commit this file!)
+cat > terraform.tfvars << EOF
+environment = "dev"
+admin_email = "your-email@example.com"
+admin_temp_password = "YourSecurePassword123!"
+use_ssm_password = false
+EOF
+
+# Add to .gitignore
+echo "terraform.tfvars" >> .gitignore
+echo "*.tfvars" >> .gitignore
+```
+
+Then deploy:
+```bash
+terraform apply
+```
+
+### Step 4: CI/CD Pipeline Approach (Most Secure for Production)
+
+For production deployments, use GitHub Actions with encrypted secrets:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy Infrastructure
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Store admin credentials in Parameter Store
+        run: |
+          aws ssm put-parameter \
+            --name "/oyins-journey-prod/admin/email" \
+            --value "${{ secrets.ADMIN_EMAIL }}" \
+            --type "String" \
+            --overwrite
+          
+          aws ssm put-parameter \
+            --name "/oyins-journey-prod/admin/temp-password" \
+            --value "${{ secrets.ADMIN_TEMP_PASSWORD }}" \
+            --type "SecureString" \
+            --overwrite
+      
+      - name: Deploy with Terraform
+        run: |
+          cd infrastructure
+          terraform init
+          terraform apply -auto-approve -var="environment=prod"
+```
+
+## Frontend Configuration
+
+### Get Infrastructure Outputs
 
 After deployment, get the required values:
 
@@ -27,7 +123,7 @@ terraform output cognito_user_pool_id
 terraform output cognito_user_pool_client_id
 ```
 
-### 3. Configure Frontend Environment
+### Configure Frontend Environment
 
 Update `frontend/.env.development` with the actual values:
 
@@ -37,7 +133,7 @@ VITE_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
 VITE_COGNITO_USER_POOL_CLIENT_ID=your-client-id
 ```
 
-### 4. Build and Deploy Frontend
+### Build and Deploy Frontend
 
 ```bash
 cd frontend
@@ -51,12 +147,47 @@ aws s3 sync dist/ s3://your-frontend-bucket-name --delete
 aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
 ```
 
+## Security Best Practices Summary
+
+### ✅ DO:
+1. **Use AWS Parameter Store** for sensitive data (default configuration)
+2. **Use environment-specific tfvars files** (add to .gitignore)
+3. **Use CI/CD with encrypted secrets** for production
+4. **Change temporary password immediately** after first login
+5. **Enable MFA** on your AWS account
+6. **Use least-privilege IAM policies**
+
+### ❌ DON'T:
+1. **Never hardcode credentials** in Terraform files
+2. **Never commit .tfvars files** to version control
+3. **Never pass sensitive data** via command line arguments
+4. **Never store credentials** in plain text files
+5. **Never use the same password** across environments
+
+## Quick Start (Recommended)
+
+```bash
+# 1. Store credentials securely
+aws ssm put-parameter --name "/oyins-journey-dev/admin/email" --value "your-email@example.com" --type "String"
+aws ssm put-parameter --name "/oyins-journey-dev/admin/temp-password" --value "SecurePass123!" --type "SecureString"
+
+# 2. Deploy infrastructure
+cd infrastructure
+terraform init
+terraform apply -var="environment=dev"
+
+# 3. Get outputs and configure frontend
+terraform output api_gateway_url
+terraform output cognito_user_pool_id
+terraform output cognito_user_pool_client_id
+```
+
 ## Admin Portal Setup
 
 ### 1. Initial Admin Login
 
 1. Go to `https://your-domain.com/admin/login`
-2. Use the email and temporary password you set during infrastructure deployment
+2. Use the email and temporary password you stored in Parameter Store
 3. You'll be prompted to set a new password on first login
 
 ### 2. Configure Site Settings
@@ -69,28 +200,6 @@ aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --path
 
 The analytics system will automatically start tracking page views once visitors access your site. View analytics in the admin portal.
 
-## Environment Variables
-
-### Required for Infrastructure
-
-- `admin_email`: Your admin email address for Cognito user
-- `admin_temp_password`: Temporary password (must meet AWS password requirements)
-- `environment`: Deployment environment (dev, test, prod)
-
-### Required for Frontend
-
-- `VITE_API_URL`: API Gateway URL from Terraform output
-- `VITE_COGNITO_USER_POOL_ID`: Cognito User Pool ID from Terraform output
-- `VITE_COGNITO_USER_POOL_CLIENT_ID`: Cognito User Pool Client ID from Terraform output
-
-## Security Notes
-
-1. **Change the temporary password immediately** after first login
-2. The Cognito User Pool is configured with strong password requirements
-3. Admin API endpoints are protected with Cognito JWT tokens
-4. Analytics data is stored locally and contains no PII
-5. All social links and URLs are validated before saving
-
 ## Troubleshooting
 
 ### Authentication Issues
@@ -99,31 +208,21 @@ The analytics system will automatically start tracking page views once visitors 
 - Check that the User Pool and Client ID match your infrastructure
 - Verify the admin user exists in the Cognito User Pool
 
+### Parameter Store Issues
+
+- Verify parameters exist: `aws ssm get-parameter --name "/oyins-journey-dev/admin/email"`
+- Check IAM permissions for SSM access
+- Ensure parameter names match the expected format
+
 ### API Issues
 
 - Confirm the API Gateway URL is correct in environment variables
 - Check that Lambda functions have proper DynamoDB permissions
 - Verify CORS is configured correctly for your domain
 
-### Build Issues
-
-- Run `npm install` to ensure all dependencies are installed
-- Check TypeScript compilation with `npm run build`
-- Verify all UI components are properly imported
-
-## Cost Optimization
-
-- Cognito: First 50,000 MAUs are free, then $0.0055 per MAU
-- DynamoDB: On-demand pricing for low-traffic sites
-- Lambda: Pay per request, very cost-effective for portfolio sites
-- S3 + CloudFront: Minimal costs for static site hosting
-
-## Next Steps
-
-After deployment, you can:
-
-1. Add content management forms for projects, skills, and certifications
-2. Implement server-side analytics with CloudWatch
-3. Add more authentication providers (Google, GitHub, etc.)
-4. Set up automated backups for DynamoDB data
-5. Configure custom domain with SSL certificate
+This approach ensures:
+- **No sensitive data in code or command history**
+- **Encrypted storage of credentials**
+- **Audit trail of parameter access**
+- **Easy rotation of credentials**
+- **Environment isolation**

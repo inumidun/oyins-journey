@@ -17,10 +17,18 @@ variable "admin_domain" {
 variable "admin_email" {
   description = "Admin user email"
   type        = string
+  default     = null
 }
 
 variable "admin_temp_password" {
   description = "Temporary password for admin user"
   type        = string
   sensitive   = true
+  default     = null
+}
+
+variable "use_ssm_password" {
+  description = "Use credentials from SSM Parameter Store instead of variables"
+  type        = bool
+  default     = true
 }

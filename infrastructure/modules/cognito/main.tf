@@ -100,16 +100,28 @@ resource "random_string" "domain_suffix" {
   upper   = false
 }
 
+# Get admin credentials from SSM Parameter Store
+data "aws_ssm_parameter" "admin_email" {
+  count = var.use_ssm_password ? 1 : 0
+  name  = "/${var.name_prefix}/admin/email"
+}
+
+data "aws_ssm_parameter" "admin_password" {
+  count           = var.use_ssm_password ? 1 : 0
+  name            = "/${var.name_prefix}/admin/temp-password"
+  with_decryption = true
+}
+
 # Create initial admin user
 resource "aws_cognito_user" "admin_user" {
   user_pool_id = aws_cognito_user_pool.admin_pool.id
-  username     = var.admin_email
+  username     = var.use_ssm_password ? data.aws_ssm_parameter.admin_email[0].value : var.admin_email
 
   attributes = {
-    email          = var.admin_email
+    email          = var.use_ssm_password ? data.aws_ssm_parameter.admin_email[0].value : var.admin_email
     email_verified = "true"
   }
 
-  temporary_password = var.admin_temp_password
+  temporary_password = var.use_ssm_password ? data.aws_ssm_parameter.admin_password[0].value : var.admin_temp_password
   message_action     = "SUPPRESS" # Don't send welcome email
 }
