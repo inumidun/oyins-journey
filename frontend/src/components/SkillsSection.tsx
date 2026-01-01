@@ -29,7 +29,6 @@ const proficiencyWidth: Record<string, string> = {
 const SkillsSection = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [cloudFilter, setCloudFilter] = useState<string>('all');
@@ -45,8 +44,32 @@ const SkillsSection = () => {
         const response = await skillsApi.getAll(params);
         setSkills(response.skills || response || []);
       } catch (err) {
-        setError('Failed to load skills');
         console.error('Error fetching skills:', err);
+        // Use fallback data when API is unavailable
+        const fallbackSkills: Skill[] = [
+          { id: 'aws-lambda', name: 'AWS Lambda', category: 'cloud', technologies: ['Python', 'Node.js'], usage_count: 12, proficiency: 'advanced', years_experience: 3 },
+          { id: 'dynamodb', name: 'DynamoDB', category: 'database', technologies: ['NoSQL', 'AWS'], usage_count: 8, proficiency: 'advanced', years_experience: 2 },
+          { id: 'api-gateway', name: 'API Gateway', category: 'cloud', technologies: ['REST', 'AWS'], usage_count: 10, proficiency: 'advanced', years_experience: 3 },
+          { id: 'terraform', name: 'Terraform', category: 'devops', technologies: ['IaC', 'HCL'], usage_count: 6, proficiency: 'intermediate', years_experience: 2 },
+          { id: 'github-actions', name: 'GitHub Actions', category: 'devops', technologies: ['CI/CD', 'YAML'], usage_count: 15, proficiency: 'advanced', years_experience: 3 },
+          { id: 'cloudwatch', name: 'CloudWatch', category: 'cloud', technologies: ['Monitoring', 'AWS'], usage_count: 9, proficiency: 'intermediate', years_experience: 2 },
+          { id: 's3', name: 'S3', category: 'cloud', technologies: ['Storage', 'AWS'], usage_count: 14, proficiency: 'expert', years_experience: 4 },
+          { id: 'cloudfront', name: 'CloudFront', category: 'cloud', technologies: ['CDN', 'AWS'], usage_count: 4, proficiency: 'intermediate', years_experience: 2 },
+          { id: 'typescript', name: 'TypeScript', category: 'backend', technologies: ['JavaScript', 'Node.js'], usage_count: 20, proficiency: 'advanced', years_experience: 3 },
+          { id: 'react', name: 'React', category: 'frontend', technologies: ['JavaScript', 'UI'], usage_count: 18, proficiency: 'advanced', years_experience: 3 },
+          { id: 'python', name: 'Python', category: 'backend', technologies: ['Scripting', 'API'], usage_count: 16, proficiency: 'advanced', years_experience: 4 },
+          { id: 'docker', name: 'Docker', category: 'devops', technologies: ['Containers', 'DevOps'], usage_count: 7, proficiency: 'intermediate', years_experience: 2 }
+        ];
+        
+        // Apply filters to fallback data
+        let filtered = fallbackSkills;
+        if (categoryFilter !== 'all') {
+          filtered = filtered.filter(s => s.category === categoryFilter);
+        }
+        if (cloudFilter !== 'all' && cloudFilter === 'aws') {
+          filtered = filtered.filter(s => s.technologies.some(t => t.toLowerCase().includes('aws')) || s.category === 'cloud');
+        }
+        setSkills(filtered);
       } finally {
         setLoading(false);
       }
@@ -69,18 +92,6 @@ const SkillsSection = () => {
           <div className="flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <span className="ml-2 text-muted-foreground">Loading skills...</span>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section id="skills" className="py-24 bg-secondary/20">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-destructive">
-            <p>Error: {error}</p>
           </div>
         </div>
       </section>

@@ -176,20 +176,21 @@ describe('CertificationsSection', () => {
     expect(screen.queryByText('Google Cloud Associate Cloud Engineer')).not.toBeInTheDocument();
   });
 
-  it('handles API failures gracefully', async () => {
+  it('handles API failures gracefully with fallback data', async () => {
     vi.mocked(api.certificationsApi.getAll).mockRejectedValue(new Error('API Error'));
 
     renderWithQueryClient(<CertificationsSection />);
 
+    // Should show fallback certifications when API fails
     await waitFor(() => {
-      expect(screen.getByText('Error: Failed to load certifications')).toBeInTheDocument();
+      expect(screen.getByText('AWS Solutions Architect Associate')).toBeInTheDocument();
     });
 
     // Should not show loading state
     expect(screen.queryByText('Loading certifications...')).not.toBeInTheDocument();
     
-    // Should not show any certifications
-    expect(screen.queryByText('AWS Solutions Architect Associate')).not.toBeInTheDocument();
+    // Should not show error message (we use fallback data instead)
+    expect(screen.queryByText('Error: Failed to load certifications')).not.toBeInTheDocument();
   });
 
   it('displays empty state when no certifications match criteria', async () => {

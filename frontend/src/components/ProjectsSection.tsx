@@ -6,7 +6,6 @@ import { projectsApi, Project } from '@/services/api';
 const ProjectsSection = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -15,8 +14,28 @@ const ProjectsSection = () => {
         const response = await projectsApi.getAll();
         setProjects(response.projects || response || []);
       } catch (err) {
-        setError('Failed to load projects');
         console.error('Error fetching projects:', err);
+        // Use fallback data when API is unavailable
+        setProjects([
+          {
+            id: 'living-architecture-resume',
+            name: 'Living Architecture Resume',
+            description: 'Self-documenting, queryable cloud architecture that serves as an engineering resume with CI/CD, IaC, and architectural decision records.',
+            status: 'active',
+            technologies: ['TypeScript', 'React', 'Terraform', 'Lambda', 'API Gateway', 'DynamoDB', 'S3', 'CloudFront'],
+            start_date: '2024-12',
+            repository: 'https://github.com/oyindamola-oladipo/oyins-journey',
+            live_url: 'https://oyins-journey.dev'
+          },
+          {
+            id: 'serverless-event-processor',
+            name: 'Serverless Event Processor',
+            description: 'Event-driven architecture for processing high volume data streams with dead letter queues and retry logic.',
+            status: 'completed',
+            technologies: ['Python', 'AWS Lambda', 'SQS', 'DynamoDB', 'CloudWatch'],
+            start_date: '2024-10'
+          }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -32,18 +51,6 @@ const ProjectsSection = () => {
           <div className="flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <span className="ml-2 text-muted-foreground">Loading projects...</span>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section id="projects" className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-destructive">
-            <p>Error: {error}</p>
           </div>
         </div>
       </section>
