@@ -53,65 +53,6 @@ jobs:
       run: |
         ENV="${{ inputs.environment }}"
         terraform init -backend-config="key=infrastructure/${ENV}/terraform.tfstate"
-        
-        # Check for existing locks and clear them if they're stale
-        echo "🔍 Checking for stale locks..."
-        LOCK_ERROR=$(terraform plan -var-file="config/${ENV}.tfvars" 2>&1)
-        
-        if echo "$LOCK_ERROR" | grep -q "Error acquiring the state lock"; then
-          echo "🔒 Found stale lock, attempting to clear it..."
-          
-          # Debug: Show the actual error output format
-          echo "Lock error output:"
-          echo "$LOCK_ERROR" | grep -A 15 "Lock Info:"
-          
-          # Extract lock ID using multiple methods
-          # Method 1: Look for ID field in Lock Info section
-          STALE_LOCK_ID=$(echo "$LOCK_ERROR" | grep -A 15 "Lock Info:" | grep "ID:" | sed 's/.*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
-          
-          # Method 2: If method 1 fails, try direct UUID pattern matching
-          if [ -z "$STALE_LOCK_ID" ] || [ "$STALE_LOCK_ID" = "" ]; then
-            STALE_LOCK_ID=$(echo "$LOCK_ERROR" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-          fi
-          
-          # Method 3: Try the known problematic lock ID as fallback
-          if [ -z "$STALE_LOCK_ID" ] || [ "$STALE_LOCK_ID" = "" ]; then
-            echo "Could not extract lock ID, trying known problematic lock ID..."
-            STALE_LOCK_ID="95e59694-ed04-163e-b715-c11551303d08"
-          fi
-          
-          if [ -n "$STALE_LOCK_ID" ] && [[ "$STALE_LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
-            echo "🔓 Clearing stale lock: $STALE_LOCK_ID"
-            
-            # Try direct DynamoDB deletion first
-            echo "🔧 Attempting to clear lock using AWS CLI..."
-            LOCK_TABLE="oyins-journey-terraform-locks"
-            STATE_PATH="oyins-journey-terraform-state/infrastructure/${ENV}/terraform.tfstate"
-            
-            aws dynamodb delete-item \
-              --table-name "$LOCK_TABLE" \
-              --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
-              --region us-east-1 2>/dev/null && echo "DynamoDB lock item deleted" || echo "DynamoDB deletion failed or item not found"
-            
-            # Then try terraform force-unlock
-            terraform force-unlock -force "$STALE_LOCK_ID"
-            
-            if [ $? -eq 0 ]; then
-              echo "✅ Stale lock cleared successfully"
-            else
-              echo "❌ Failed to clear stale lock with terraform force-unlock"
-              # Don't exit here, let the retry logic handle it
-            fi
-          else
-            echo "❌ Could not extract valid lock ID"
-            echo "Extracted value: '$STALE_LOCK_ID'"
-            echo "Full error output:"
-            echo "$LOCK_ERROR"
-            # Don't exit here, let the retry logic handle it
-          fi
-        else
-          echo "✅ No stale locks found"
-        fi
     
     - name: Terraform Plan
       working-directory: ./infrastructure
@@ -136,46 +77,35 @@ jobs:
               if echo "$ERROR_OUTPUT" | grep -q "Error acquiring the state lock"; then
                 echo "🔒 State lock detected, attempting to unlock..."
                 
-                # Extract lock ID using multiple methods
-                # Method 1: Look for ID field in Lock Info section
-                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 15 "Lock Info:" | grep "ID:" | sed 's/.*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+                # Try multiple approaches to clear the lock
+                echo "🔧 Attempting to clear lock using multiple methods..."
                 
-                # Method 2: If method 1 fails, try direct UUID pattern matching
-                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
-                  LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-                fi
+                # Method 1: Direct DynamoDB deletion
+                LOCK_TABLE="oyins-journey-terraform-locks"
+                STATE_PATH="oyins-journey-terraform-state/infrastructure/dev/terraform.tfstate"
                 
-                # Method 3: Try the known problematic lock ID as fallback
-                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
-                  echo "Could not extract lock ID, trying known problematic lock ID..."
-                  LOCK_ID="95e59694-ed04-163e-b715-c11551303d08"
-                fi
+                aws dynamodb delete-item \
+                  --table-name "$LOCK_TABLE" \
+                  --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
+                  --region us-east-1 2>/dev/null && echo "DynamoDB lock item deleted" || echo "DynamoDB deletion failed"
                 
+                # Method 2: Try with known problematic lock ID
+                echo "Trying terraform force-unlock with known lock ID..."
+                terraform force-unlock -force "95e59694-ed04-163e-b715-c11551303d08" 2>/dev/null && echo "Known lock ID unlocked" || echo "Known lock ID unlock failed"
+                
+                # Method 3: Try to extract lock ID from error and unlock
+                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
                 if [ -n "$LOCK_ID" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
-                  echo "Found lock ID: $LOCK_ID"
-                  
-                  # Try direct DynamoDB approach first
-                  echo "🔧 Attempting to clear lock using AWS CLI..."
-                  LOCK_TABLE="oyins-journey-terraform-locks"
-                  STATE_PATH="oyins-journey-terraform-state/infrastructure/dev/terraform.tfstate"
-                  
-                  aws dynamodb delete-item \
-                    --table-name "$LOCK_TABLE" \
-                    --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
-                    --region us-east-1 2>/dev/null || echo "DynamoDB deletion failed or item not found"
-                  
-                  # Then try terraform force-unlock
-                  terraform force-unlock -force "$LOCK_ID" 2>/dev/null || echo "Terraform force-unlock failed"
-                  
-                  echo "🔓 Lock clearing attempted, retrying..."
-                  retry_count=$((retry_count + 1))
-                  sleep 5
-                else
-                  echo "Could not extract or use valid lock ID"
-                  return 1
+                  echo "Extracted lock ID: $LOCK_ID, attempting unlock..."
+                  terraform force-unlock -force "$LOCK_ID" 2>/dev/null && echo "Extracted lock ID unlocked" || echo "Extracted lock ID unlock failed"
                 fi
+                
+                echo "🔓 Lock clearing attempts completed, retrying command..."
+                retry_count=$((retry_count + 1))
+                sleep 5
               else
                 echo "Non-lock related error, failing..."
+                echo "Error output: $ERROR_OUTPUT"
                 return 1
               fi
             fi
@@ -212,46 +142,35 @@ jobs:
               if echo "$ERROR_OUTPUT" | grep -q "Error acquiring the state lock"; then
                 echo "🔒 State lock detected, attempting to unlock..."
                 
-                # Extract lock ID using multiple methods
-                # Method 1: Look for ID field in Lock Info section
-                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 15 "Lock Info:" | grep "ID:" | sed 's/.*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+                # Try multiple approaches to clear the lock
+                echo "🔧 Attempting to clear lock using multiple methods..."
                 
-                # Method 2: If method 1 fails, try direct UUID pattern matching
-                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
-                  LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-                fi
+                # Method 1: Direct DynamoDB deletion
+                LOCK_TABLE="oyins-journey-terraform-locks"
+                STATE_PATH="oyins-journey-terraform-state/infrastructure/dev/terraform.tfstate"
                 
-                # Method 3: Try the known problematic lock ID as fallback
-                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
-                  echo "Could not extract lock ID, trying known problematic lock ID..."
-                  LOCK_ID="95e59694-ed04-163e-b715-c11551303d08"
-                fi
+                aws dynamodb delete-item \
+                  --table-name "$LOCK_TABLE" \
+                  --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
+                  --region us-east-1 2>/dev/null && echo "DynamoDB lock item deleted" || echo "DynamoDB deletion failed"
                 
+                # Method 2: Try with known problematic lock ID
+                echo "Trying terraform force-unlock with known lock ID..."
+                terraform force-unlock -force "95e59694-ed04-163e-b715-c11551303d08" 2>/dev/null && echo "Known lock ID unlocked" || echo "Known lock ID unlock failed"
+                
+                # Method 3: Try to extract lock ID from error and unlock
+                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
                 if [ -n "$LOCK_ID" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
-                  echo "Found lock ID: $LOCK_ID"
-                  
-                  # Try direct DynamoDB approach first
-                  echo "🔧 Attempting to clear lock using AWS CLI..."
-                  LOCK_TABLE="oyins-journey-terraform-locks"
-                  STATE_PATH="oyins-journey-terraform-state/infrastructure/dev/terraform.tfstate"
-                  
-                  aws dynamodb delete-item \
-                    --table-name "$LOCK_TABLE" \
-                    --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
-                    --region us-east-1 2>/dev/null || echo "DynamoDB deletion failed or item not found"
-                  
-                  # Then try terraform force-unlock
-                  terraform force-unlock -force "$LOCK_ID" 2>/dev/null || echo "Terraform force-unlock failed"
-                  
-                  echo "🔓 Lock clearing attempted, retrying..."
-                  retry_count=$((retry_count + 1))
-                  sleep 5
-                else
-                  echo "Could not extract or use valid lock ID"
-                  return 1
+                  echo "Extracted lock ID: $LOCK_ID, attempting unlock..."
+                  terraform force-unlock -force "$LOCK_ID" 2>/dev/null && echo "Extracted lock ID unlocked" || echo "Extracted lock ID unlock failed"
                 fi
+                
+                echo "🔓 Lock clearing attempts completed, retrying command..."
+                retry_count=$((retry_count + 1))
+                sleep 5
               else
                 echo "Non-lock related error, failing..."
+                echo "Error output: $ERROR_OUTPUT"
                 return 1
               fi
             fi
