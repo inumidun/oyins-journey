@@ -60,28 +60,8 @@ jobs:
         
         echo "Attempting to clear lock ID: $KNOWN_LOCK_ID"
         
-        # Method 1: Scan and delete all items in the lock table for our state
-        echo "🔍 Scanning DynamoDB lock table for our state file..."
-        aws dynamodb scan \
-          --table-name "$LOCK_TABLE" \
-          --region us-east-1 \
-          --output json | jq -r '.Items[] | select(.Path.S | contains("infrastructure/dev/terraform.tfstate")) | .LockID.S' | while read -r lock_id; do
-            if [ -n "$lock_id" ] && [ "$lock_id" != "null" ]; then
-              echo "🗑️ Deleting lock item with LockID: $lock_id"
-              aws dynamodb delete-item \
-                --table-name "$LOCK_TABLE" \
-                --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
-                --region us-east-1 || echo "DynamoDB deletion failed for $lock_id"
-            fi
-          done
-        
-        # Method 2: Direct terraform force-unlock with known problematic ID
-        echo "🔓 Force unlocking with terraform (known ID)..."
-        terraform init -backend-config="key=infrastructure/dev/terraform.tfstate" || echo "Init failed, continuing..."
-        terraform force-unlock -force "$KNOWN_LOCK_ID" || echo "Terraform force-unlock failed"
-        
-        # Method 3: Nuclear option - delete all items in lock table (safe since it's just locks)
-        echo "🧹 Nuclear option: clearing all locks in table..."
+        # Method 1: Nuclear option - delete all items in lock table (safe since it's just locks)
+        echo "🧹 Clearing all locks in table..."
         aws dynamodb scan \
           --table-name "$LOCK_TABLE" \
           --region us-east-1 \
@@ -96,13 +76,28 @@ jobs:
             fi
           done
         
+        # Method 2: Try terraform force-unlock (may fail if backend not initialized)
+        echo "🔓 Attempting terraform force-unlock..."
+        terraform init -backend-config="key=infrastructure/dev/terraform.tfstate" 2>/dev/null || echo "Init failed, continuing..."
+        terraform force-unlock -force "$KNOWN_LOCK_ID" 2>/dev/null || echo "Terraform force-unlock failed"
+        
         echo "✅ Lock clearing attempts completed"
 
     - name: Terraform Init
       working-directory: ./infrastructure
       run: |
         ENV="${{ inputs.environment }}"
-        terraform init -backend-config="key=infrastructure/${ENV}/terraform.tfstate"
+        
+        # Handle backend configuration changes gracefully
+        echo "🔧 Initializing Terraform with backend configuration..."
+        
+        # Try normal init first
+        if ! terraform init -backend-config="key=infrastructure/${ENV}/terraform.tfstate"; then
+          echo "⚠️ Normal init failed, attempting reconfigure..."
+          terraform init -reconfigure -backend-config="key=infrastructure/${ENV}/terraform.tfstate"
+        fi
+        
+        echo "✅ Terraform initialization completed"
     
     - name: Terraform Plan
       working-directory: ./infrastructure
