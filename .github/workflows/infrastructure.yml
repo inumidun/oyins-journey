@@ -53,6 +53,26 @@ jobs:
       run: |
         ENV="${{ inputs.environment }}"
         terraform init -backend-config="key=infrastructure/${ENV}/terraform.tfstate"
+        
+        # Check for existing locks and clear them if they're stale
+        echo "🔍 Checking for stale locks..."
+        if terraform plan -var-file="config/${ENV}.tfvars" 2>&1 | grep -q "Error acquiring the state lock"; then
+          echo "🔒 Found stale lock, attempting to clear it..."
+          # Extract lock ID from the error and force unlock
+          LOCK_ERROR=$(terraform plan -var-file="config/${ENV}.tfvars" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+          STALE_LOCK_ID=$(echo "$LOCK_ERROR" | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+          
+          if [ -n "$STALE_LOCK_ID" ] && [[ "$STALE_LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
+            echo "🔓 Clearing stale lock: $STALE_LOCK_ID"
+            terraform force-unlock -force "$STALE_LOCK_ID"
+            echo "✅ Stale lock cleared"
+          else
+            echo "❌ Could not extract valid lock ID"
+            exit 1
+          fi
+        else
+          echo "✅ No stale locks found"
+        fi
     
     - name: Terraform Plan
       working-directory: ./infrastructure
@@ -75,16 +95,26 @@ jobs:
               # Check if it's a lock error and extract lock ID
               if eval "$cmd" 2>&1 | grep -q "Error acquiring the state lock"; then
                 echo "🔒 State lock detected, attempting to unlock..."
-                LOCK_ID=$(eval "$cmd" 2>&1 | grep -A 10 "Lock Info:" | grep "ID:" | awk '{print $2}' | head -1)
+                # Capture the full error output, strip ANSI codes, and extract lock ID
+                ERROR_OUTPUT=$(eval "$cmd" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
                 
-                if [ -n "$LOCK_ID" ]; then
+                if [ -n "$LOCK_ID" ] && [ "$LOCK_ID" != "" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
                   echo "Found lock ID: $LOCK_ID"
                   terraform force-unlock -force "$LOCK_ID"
-                  echo "🔓 Lock released, retrying..."
-                  retry_count=$((retry_count + 1))
-                  sleep 5
+                  if [ $? -eq 0 ]; then
+                    echo "🔓 Lock released successfully, retrying..."
+                    retry_count=$((retry_count + 1))
+                    sleep 5
+                  else
+                    echo "❌ Failed to release lock"
+                    return 1
+                  fi
                 else
-                  echo "Could not extract lock ID"
+                  echo "Could not extract valid lock ID from error output"
+                  echo "Extracted: '$LOCK_ID'"
+                  echo "Full error output:"
+                  echo "$ERROR_OUTPUT"
                   return 1
                 fi
               else
@@ -123,16 +153,26 @@ jobs:
               # Check if it's a lock error and extract lock ID
               if eval "$cmd" 2>&1 | grep -q "Error acquiring the state lock"; then
                 echo "🔒 State lock detected, attempting to unlock..."
-                LOCK_ID=$(eval "$cmd" 2>&1 | grep -A 10 "Lock Info:" | grep "ID:" | awk '{print $2}' | head -1)
+                # Capture the full error output, strip ANSI codes, and extract lock ID
+                ERROR_OUTPUT=$(eval "$cmd" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
                 
-                if [ -n "$LOCK_ID" ]; then
+                if [ -n "$LOCK_ID" ] && [ "$LOCK_ID" != "" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
                   echo "Found lock ID: $LOCK_ID"
                   terraform force-unlock -force "$LOCK_ID"
-                  echo "🔓 Lock released, retrying..."
-                  retry_count=$((retry_count + 1))
-                  sleep 5
+                  if [ $? -eq 0 ]; then
+                    echo "🔓 Lock released successfully, retrying..."
+                    retry_count=$((retry_count + 1))
+                    sleep 5
+                  else
+                    echo "❌ Failed to release lock"
+                    return 1
+                  fi
                 else
-                  echo "Could not extract lock ID"
+                  echo "Could not extract valid lock ID from error output"
+                  echo "Extracted: '$LOCK_ID'"
+                  echo "Full error output:"
+                  echo "$ERROR_OUTPUT"
                   return 1
                 fi
               else
