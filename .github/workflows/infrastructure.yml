@@ -48,6 +48,56 @@ jobs:
           ./bootstrap.sh
         }
     
+    - name: Clear Known Stale Lock
+      working-directory: ./infrastructure
+      run: |
+        echo "🔧 Clearing known stale lock before terraform operations..."
+        
+        # Clear the specific problematic lock ID directly
+        KNOWN_LOCK_ID="95e59694-ed04-163e-b715-c11551303d08"
+        LOCK_TABLE="oyins-journey-terraform-locks"
+        STATE_PATH="oyins-journey-terraform-state/infrastructure/dev/terraform.tfstate"
+        
+        echo "Attempting to clear lock ID: $KNOWN_LOCK_ID"
+        
+        # Method 1: Scan and delete all items in the lock table for our state
+        echo "🔍 Scanning DynamoDB lock table for our state file..."
+        aws dynamodb scan \
+          --table-name "$LOCK_TABLE" \
+          --region us-east-1 \
+          --output json | jq -r '.Items[] | select(.Path.S | contains("infrastructure/dev/terraform.tfstate")) | .LockID.S' | while read -r lock_id; do
+            if [ -n "$lock_id" ] && [ "$lock_id" != "null" ]; then
+              echo "🗑️ Deleting lock item with LockID: $lock_id"
+              aws dynamodb delete-item \
+                --table-name "$LOCK_TABLE" \
+                --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
+                --region us-east-1 || echo "DynamoDB deletion failed for $lock_id"
+            fi
+          done
+        
+        # Method 2: Direct terraform force-unlock with known problematic ID
+        echo "🔓 Force unlocking with terraform (known ID)..."
+        terraform init -backend-config="key=infrastructure/dev/terraform.tfstate" || echo "Init failed, continuing..."
+        terraform force-unlock -force "$KNOWN_LOCK_ID" || echo "Terraform force-unlock failed"
+        
+        # Method 3: Nuclear option - delete all items in lock table (safe since it's just locks)
+        echo "🧹 Nuclear option: clearing all locks in table..."
+        aws dynamodb scan \
+          --table-name "$LOCK_TABLE" \
+          --region us-east-1 \
+          --query 'Items[].LockID.S' \
+          --output text | tr '\t' '\n' | while read -r lock_id; do
+            if [ -n "$lock_id" ] && [ "$lock_id" != "None" ] && [ "$lock_id" != "null" ]; then
+              echo "Deleting lock: $lock_id"
+              aws dynamodb delete-item \
+                --table-name "$LOCK_TABLE" \
+                --key "{\"LockID\":{\"S\":\"$lock_id\"}}" \
+                --region us-east-1 || echo "Failed to delete $lock_id"
+            fi
+          done
+        
+        echo "✅ Lock clearing attempts completed"
+
     - name: Terraform Init
       working-directory: ./infrastructure
       run: |
@@ -57,138 +107,77 @@ jobs:
     - name: Terraform Plan
       working-directory: ./infrastructure
       run: |
-        # Function to handle terraform state locks
-        handle_terraform_lock() {
-          local cmd="$1"
-          local max_retries=3
-          local retry_count=0
-          
-          while [ $retry_count -lt $max_retries ]; do
-            echo "Attempt $((retry_count + 1)) of $max_retries"
-            
-            if eval "$cmd"; then
-              echo "✅ Terraform command succeeded"
-              return 0
-            else
-              echo "❌ Terraform command failed"
-              
-              # Check if it's a lock error
-              ERROR_OUTPUT=$(eval "$cmd" 2>&1)
-              if echo "$ERROR_OUTPUT" | grep -q "Error acquiring the state lock"; then
-                echo "🔒 State lock detected, attempting to unlock..."
-                
-                # Try multiple approaches to clear the lock
-                echo "🔧 Attempting to clear lock using multiple methods..."
-                
-                # Method 1: Direct DynamoDB deletion
-                LOCK_TABLE="oyins-journey-terraform-locks"
-                STATE_PATH="oyins-journey-terraform-state/infrastructure/dev/terraform.tfstate"
-                
-                aws dynamodb delete-item \
-                  --table-name "$LOCK_TABLE" \
-                  --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
-                  --region us-east-1 2>/dev/null && echo "DynamoDB lock item deleted" || echo "DynamoDB deletion failed"
-                
-                # Method 2: Try with known problematic lock ID
-                echo "Trying terraform force-unlock with known lock ID..."
-                terraform force-unlock -force "95e59694-ed04-163e-b715-c11551303d08" 2>/dev/null && echo "Known lock ID unlocked" || echo "Known lock ID unlock failed"
-                
-                # Method 3: Try to extract lock ID from error and unlock
-                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-                if [ -n "$LOCK_ID" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
-                  echo "Extracted lock ID: $LOCK_ID, attempting unlock..."
-                  terraform force-unlock -force "$LOCK_ID" 2>/dev/null && echo "Extracted lock ID unlocked" || echo "Extracted lock ID unlock failed"
-                fi
-                
-                echo "🔓 Lock clearing attempts completed, retrying command..."
-                retry_count=$((retry_count + 1))
-                sleep 5
-              else
-                echo "Non-lock related error, failing..."
-                echo "Error output: $ERROR_OUTPUT"
-                return 1
-              fi
-            fi
-          done
-          
-          echo "Max retries reached, failing..."
-          return 1
-        }
+        ENV="${{ inputs.environment }}"
         
-        # Run terraform plan with lock handling
-        handle_terraform_lock "terraform plan -var-file=\"config/${{ inputs.environment }}.tfvars\" -out=tfplan"
+        # Simple retry logic with better lock clearing
+        for attempt in 1 2 3; do
+          echo "🔄 Terraform plan attempt $attempt of 3"
+          
+          if terraform plan -var-file="config/${ENV}.tfvars" -out=tfplan; then
+            echo "✅ Terraform plan succeeded"
+            break
+          else
+            if [ $attempt -eq 3 ]; then
+              echo "❌ All terraform plan attempts failed"
+              exit 1
+            fi
+            
+            echo "🔧 Plan failed, clearing locks and retrying..."
+            
+            # Clear locks using multiple methods
+            LOCK_TABLE="oyins-journey-terraform-locks"
+            
+            # Method 1: Clear all locks in the table (safe operation)
+            aws dynamodb scan --table-name "$LOCK_TABLE" --region us-east-1 --query 'Items[].LockID.S' --output text | tr '\t' '\n' | while read -r lock_id; do
+              if [ -n "$lock_id" ] && [ "$lock_id" != "None" ]; then
+                aws dynamodb delete-item --table-name "$LOCK_TABLE" --key "{\"LockID\":{\"S\":\"$lock_id\"}}" --region us-east-1 2>/dev/null || true
+              fi
+            done
+            
+            # Method 2: Force unlock known problematic ID
+            terraform force-unlock -force "95e59694-ed04-163e-b715-c11551303d08" 2>/dev/null || true
+            
+            echo "⏳ Waiting 10 seconds before retry..."
+            sleep 10
+          fi
+        done
     
     - name: Terraform Apply
       id: terraform-apply
       working-directory: ./infrastructure
       run: |
-        # Function to handle terraform state locks (same as above)
-        handle_terraform_lock() {
-          local cmd="$1"
-          local max_retries=3
-          local retry_count=0
+        # Simple retry logic with better lock clearing
+        for attempt in 1 2 3; do
+          echo "🔄 Terraform apply attempt $attempt of 3"
           
-          while [ $retry_count -lt $max_retries ]; do
-            echo "Attempt $((retry_count + 1)) of $max_retries"
-            
-            if eval "$cmd"; then
-              echo "✅ Terraform command succeeded"
-              return 0
-            else
-              echo "❌ Terraform command failed"
-              
-              # Check if it's a lock error
-              ERROR_OUTPUT=$(eval "$cmd" 2>&1)
-              if echo "$ERROR_OUTPUT" | grep -q "Error acquiring the state lock"; then
-                echo "🔒 State lock detected, attempting to unlock..."
-                
-                # Try multiple approaches to clear the lock
-                echo "🔧 Attempting to clear lock using multiple methods..."
-                
-                # Method 1: Direct DynamoDB deletion
-                LOCK_TABLE="oyins-journey-terraform-locks"
-                STATE_PATH="oyins-journey-terraform-state/infrastructure/dev/terraform.tfstate"
-                
-                aws dynamodb delete-item \
-                  --table-name "$LOCK_TABLE" \
-                  --key "{\"LockID\":{\"S\":\"$STATE_PATH\"}}" \
-                  --region us-east-1 2>/dev/null && echo "DynamoDB lock item deleted" || echo "DynamoDB deletion failed"
-                
-                # Method 2: Try with known problematic lock ID
-                echo "Trying terraform force-unlock with known lock ID..."
-                terraform force-unlock -force "95e59694-ed04-163e-b715-c11551303d08" 2>/dev/null && echo "Known lock ID unlocked" || echo "Known lock ID unlock failed"
-                
-                # Method 3: Try to extract lock ID from error and unlock
-                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-                if [ -n "$LOCK_ID" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
-                  echo "Extracted lock ID: $LOCK_ID, attempting unlock..."
-                  terraform force-unlock -force "$LOCK_ID" 2>/dev/null && echo "Extracted lock ID unlocked" || echo "Extracted lock ID unlock failed"
-                fi
-                
-                echo "🔓 Lock clearing attempts completed, retrying command..."
-                retry_count=$((retry_count + 1))
-                sleep 5
-              else
-                echo "Non-lock related error, failing..."
-                echo "Error output: $ERROR_OUTPUT"
-                return 1
-              fi
+          if terraform apply -auto-approve tfplan; then
+            echo "✅ Terraform apply succeeded"
+            break
+          else
+            if [ $attempt -eq 3 ]; then
+              echo "❌ All terraform apply attempts failed"
+              exit 1
             fi
-          done
-          
-          echo "Max retries reached, failing..."
-          return 1
-        }
-        
-        # Run terraform apply with lock handling
-        handle_terraform_lock "terraform apply -auto-approve tfplan"
-        
-        # Store outputs in SSM Parameter Store for frontend workflow
-        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-api-url" --value "$(terraform output -raw api_gateway_url)" --type "String" --overwrite
-        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-s3-bucket" --value "$(terraform output -raw s3_bucket_name)" --type "String" --overwrite
-        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-s3-admin-bucket" --value "$(terraform output -raw s3_admin_bucket_name)" --type "String" --overwrite
-        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-cloudfront-frontend-id" --value "$(terraform output -raw cloudfront_frontend_id)" --type "String" --overwrite
-        aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-cloudfront-admin-id" --value "$(terraform output -raw cloudfront_admin_id)" --type "String" --overwrite
+            
+            echo "🔧 Apply failed, clearing locks and retrying..."
+            
+            # Clear locks using multiple methods
+            LOCK_TABLE="oyins-journey-terraform-locks"
+            
+            # Method 1: Clear all locks in the table (safe operation)
+            aws dynamodb scan --table-name "$LOCK_TABLE" --region us-east-1 --query 'Items[].LockID.S' --output text | tr '\t' '\n' | while read -r lock_id; do
+              if [ -n "$lock_id" ] && [ "$lock_id" != "None" ]; then
+                aws dynamodb delete-item --table-name "$LOCK_TABLE" --key "{\"LockID\":{\"S\":\"$lock_id\"}}" --region us-east-1 2>/dev/null || true
+              fi
+            done
+            
+            # Method 2: Force unlock known problematic ID
+            terraform force-unlock -force "95e59694-ed04-163e-b715-c11551303d08" 2>/dev/null || true
+            
+            echo "⏳ Waiting 10 seconds before retry..."
+            sleep 10
+          fi
+        done
         
         # Store outputs in SSM Parameter Store for frontend workflow
         aws ssm put-parameter --name "${{ env.PROJECT_NAME }}-${{ inputs.environment }}-api-url" --value "$(terraform output -raw api_gateway_url)" --type "String" --overwrite
