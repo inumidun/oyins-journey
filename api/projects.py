@@ -105,9 +105,27 @@ def enrich_project_with_github_data(project):
     
     return project
 
+def get_cors_headers():
+    """Get comprehensive CORS headers"""
+    return {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+        'Access-Control-Max-Age': '86400'
+    }
+
 def lambda_handler(event, context):
     try:
         http_method = event.get('httpMethod', 'GET')
+        
+        # Handle OPTIONS requests for CORS preflight
+        if http_method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': get_cors_headers(),
+                'body': ''
+            }
         
         if http_method == 'GET':
             return handle_get_projects(event)
@@ -116,10 +134,7 @@ def lambda_handler(event, context):
         else:
             return {
                 'statusCode': 405,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({'error': 'Method not allowed'})
             }
             
@@ -127,10 +142,7 @@ def lambda_handler(event, context):
         print(f"Error in projects handler: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'error': 'Internal server error',
                 'message': str(e) if os.environ.get('DEBUG') else 'An error occurred'
@@ -155,10 +167,7 @@ def handle_get_projects(event):
         if 'Item' not in response:
             return {
                 'statusCode': 404,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({
                     'error': 'Project not found'
                 })
@@ -172,10 +181,7 @@ def handle_get_projects(event):
         
         return {
             'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps(project)
         }
     else:
@@ -201,10 +207,7 @@ def handle_get_projects(event):
         
         return {
             'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'projects': projects,
                 'count': len(projects),
@@ -219,10 +222,7 @@ def handle_create_project(event):
     except json.JSONDecodeError:
         return {
             'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({'error': 'Invalid JSON in request body'})
         }
     
@@ -232,10 +232,7 @@ def handle_create_project(event):
         if not body.get(field):
             return {
                 'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({'error': f'Missing required field: {field}'})
             }
     
@@ -262,10 +259,7 @@ def handle_create_project(event):
         
         return {
             'statusCode': 201,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'message': 'Project created successfully',
                 'project': project_item
@@ -276,10 +270,7 @@ def handle_create_project(event):
         print(f"Error creating project: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'error': 'Failed to create project',
                 'message': str(e) if os.environ.get('DEBUG') else 'Database error'

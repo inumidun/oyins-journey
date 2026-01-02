@@ -844,6 +844,24 @@ resource "aws_api_gateway_deployment" "main" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   stage_name  = var.environment
 
+  # Force new deployment by adding a timestamp trigger
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.skills.id,
+      aws_api_gateway_resource.projects.id,
+      aws_api_gateway_resource.certifications.id,
+      aws_api_gateway_resource.config.id,
+      aws_api_gateway_resource.admin.id,
+      aws_api_gateway_resource.admin_config.id,
+      aws_api_gateway_resource.admin_skills.id,
+      aws_api_gateway_resource.admin_projects.id,
+      aws_api_gateway_resource.admin_certifications.id,
+      aws_api_gateway_resource.adrs.id,
+      aws_api_gateway_resource.admin_adrs.id,
+      timestamp()
+    ]))
+  }
+
   lifecycle {
     create_before_destroy = true
   }

@@ -14,6 +14,14 @@ def lambda_handler(event, context):
     try:
         http_method = event.get('httpMethod', 'GET')
         
+        # Handle OPTIONS requests for CORS preflight
+        if http_method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': get_cors_headers(),
+                'body': ''
+            }
+        
         if http_method == 'GET':
             return handle_get_skills(event)
         elif http_method == 'POST':
@@ -21,10 +29,7 @@ def lambda_handler(event, context):
         else:
             return {
                 'statusCode': 405,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({'error': 'Method not allowed'})
             }
             
@@ -32,15 +37,22 @@ def lambda_handler(event, context):
         print(f"Error in skills handler: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'error': 'Internal server error',
                 'message': str(e) if os.environ.get('DEBUG') else 'An error occurred'
             })
         }
+
+def get_cors_headers():
+    """Get comprehensive CORS headers"""
+    return {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+        'Access-Control-Max-Age': '86400'
+    }
 
 def handle_get_skills(event):
     # Parse query parameters

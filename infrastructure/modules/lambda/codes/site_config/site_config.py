@@ -26,6 +26,14 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         logger.info(f"Processing {http_method} request to {path}")
         
+        # Handle OPTIONS requests for CORS preflight
+        if http_method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': get_cors_headers(),
+                'body': ''
+            }
+        
         if http_method == 'GET' and path == '/config':
             return get_site_config()
         elif http_method == 'PUT' and path == '/admin/config':

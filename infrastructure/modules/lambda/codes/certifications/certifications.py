@@ -14,11 +14,29 @@ dynamodb = boto3.resource('dynamodb')
 table_name = os.environ.get('CERTIFICATIONS_TABLE')
 certifications_table = dynamodb.Table(table_name)
 
+def get_cors_headers():
+    """Get comprehensive CORS headers"""
+    return {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+        'Access-Control-Max-Age': '86400'
+    }
+
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         logger.info(f"Processing certifications request: {json.dumps(event, default=str)}")
         
         http_method = event.get('httpMethod', 'GET')
+        
+        # Handle OPTIONS requests for CORS preflight
+        if http_method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': get_cors_headers(),
+                'body': ''
+            }
         
         if http_method == 'GET':
             return handle_get_certifications(event)
@@ -27,10 +45,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         else:
             return {
                 'statusCode': 405,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({'error': 'Method not allowed'})
             }
             
@@ -38,14 +53,14 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         logger.error(f"DynamoDB error: {e}")
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': get_cors_headers(),
             'body': json.dumps({'error': 'Database error occurred'})
         }
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': get_cors_headers(),
             'body': json.dumps({'error': 'Internal server error'})
         }
 
@@ -128,12 +143,7 @@ def handle_get_certifications(event: Dict[str, Any]) -> Dict[str, Any]:
     
     return {
         'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Methods': 'GET, OPTIONS'
-        },
+        'headers': get_cors_headers(),
         'body': json.dumps({
             'certifications': certifications,
             'count': len(certifications),
@@ -158,10 +168,7 @@ def handle_create_certification(event: Dict[str, Any]) -> Dict[str, Any]:
     except json.JSONDecodeError:
         return {
             'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({'error': 'Invalid JSON in request body'})
         }
     
@@ -171,10 +178,7 @@ def handle_create_certification(event: Dict[str, Any]) -> Dict[str, Any]:
         if not body.get(field):
             return {
                 'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({'error': f'Missing required field: {field}'})
             }
     
@@ -203,10 +207,7 @@ def handle_create_certification(event: Dict[str, Any]) -> Dict[str, Any]:
         
         return {
             'statusCode': 201,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'message': 'Certification created successfully',
                 'certification': cert_item
@@ -217,10 +218,7 @@ def handle_create_certification(event: Dict[str, Any]) -> Dict[str, Any]:
         logger.error(f"Error creating certification: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'error': 'Failed to create certification',
                 'message': str(e) if os.environ.get('DEBUG') else 'Database error'

@@ -9,9 +9,27 @@ dynamodb = boto3.resource('dynamodb')
 table_name = os.environ.get('ADRS_TABLE', 'oyins-journey-adrs')
 adrs_table = dynamodb.Table(table_name)
 
+def get_cors_headers():
+    """Get comprehensive CORS headers"""
+    return {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+        'Access-Control-Max-Age': '86400'
+    }
+
 def lambda_handler(event, context):
     try:
         http_method = event.get('httpMethod', 'GET')
+        
+        # Handle OPTIONS requests for CORS preflight
+        if http_method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': get_cors_headers(),
+                'body': ''
+            }
         
         if http_method == 'GET':
             return handle_get_adrs(event)
@@ -20,10 +38,7 @@ def lambda_handler(event, context):
         else:
             return {
                 'statusCode': 405,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({'error': 'Method not allowed'})
             }
             
@@ -31,10 +46,7 @@ def lambda_handler(event, context):
         print(f"Error in ADRs handler: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'error': 'Internal server error',
                 'message': str(e) if os.environ.get('DEBUG') else 'An error occurred'
@@ -50,10 +62,7 @@ def handle_get_adrs(event):
     
     return {
         'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
+        'headers': get_cors_headers(),
         'body': json.dumps({
             'decisions': adrs,
             'count': len(adrs)
@@ -67,10 +76,7 @@ def handle_create_adr(event):
     except json.JSONDecodeError:
         return {
             'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({'error': 'Invalid JSON in request body'})
         }
     
@@ -80,10 +86,7 @@ def handle_create_adr(event):
         if not body.get(field):
             return {
                 'statusCode': 400,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': get_cors_headers(),
                 'body': json.dumps({'error': f'Missing required field: {field}'})
             }
     
@@ -111,10 +114,7 @@ def handle_create_adr(event):
         
         return {
             'statusCode': 201,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'message': 'ADR created successfully',
                 'adr': adr_item
@@ -125,10 +125,7 @@ def handle_create_adr(event):
         print(f"Error creating ADR: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
+            'headers': get_cors_headers(),
             'body': json.dumps({
                 'error': 'Failed to create ADR',
                 'message': str(e) if os.environ.get('DEBUG') else 'Database error'
