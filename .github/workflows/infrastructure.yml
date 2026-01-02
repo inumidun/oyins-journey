@@ -58,16 +58,36 @@ jobs:
         echo "🔍 Checking for stale locks..."
         if terraform plan -var-file="config/${ENV}.tfvars" 2>&1 | grep -q "Error acquiring the state lock"; then
           echo "🔒 Found stale lock, attempting to clear it..."
-          # Extract lock ID from the error and force unlock
-          LOCK_ERROR=$(terraform plan -var-file="config/${ENV}.tfvars" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
-          STALE_LOCK_ID=$(echo "$LOCK_ERROR" | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+          # Extract lock ID from the error with multiple fallback methods
+          LOCK_ERROR=$(terraform plan -var-file="config/${ENV}.tfvars" 2>&1)
+          
+          # Method 1: Strip ANSI codes and extract
+          STALE_LOCK_ID=$(echo "$LOCK_ERROR" | sed 's/\x1b\[[0-9;]*m//g' | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+          
+          # Method 2: If method 1 fails, try a more aggressive approach
+          if [ -z "$STALE_LOCK_ID" ] || [ "$STALE_LOCK_ID" = "" ]; then
+            STALE_LOCK_ID=$(echo "$LOCK_ERROR" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+          fi
+          
+          # Method 3: If still no luck, try extracting from the specific known pattern
+          if [ -z "$STALE_LOCK_ID" ] || [ "$STALE_LOCK_ID" = "" ]; then
+            STALE_LOCK_ID=$(echo "$LOCK_ERROR" | grep -A 10 "ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+          fi
           
           if [ -n "$STALE_LOCK_ID" ] && [[ "$STALE_LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
             echo "🔓 Clearing stale lock: $STALE_LOCK_ID"
             terraform force-unlock -force "$STALE_LOCK_ID"
-            echo "✅ Stale lock cleared"
+            if [ $? -eq 0 ]; then
+              echo "✅ Stale lock cleared successfully"
+            else
+              echo "❌ Failed to clear stale lock"
+              exit 1
+            fi
           else
             echo "❌ Could not extract valid lock ID"
+            echo "Extracted value: '$STALE_LOCK_ID'"
+            echo "Full error output:"
+            echo "$LOCK_ERROR"
             exit 1
           fi
         else
@@ -95,9 +115,21 @@ jobs:
               # Check if it's a lock error and extract lock ID
               if eval "$cmd" 2>&1 | grep -q "Error acquiring the state lock"; then
                 echo "🔒 State lock detected, attempting to unlock..."
-                # Capture the full error output, strip ANSI codes, and extract lock ID
-                ERROR_OUTPUT=$(eval "$cmd" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
-                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+                # Capture the full error output and try multiple extraction methods
+                ERROR_OUTPUT=$(eval "$cmd" 2>&1)
+                
+                # Method 1: Strip ANSI codes and extract from Lock Info section
+                LOCK_ID=$(echo "$ERROR_OUTPUT" | sed 's/\x1b\[[0-9;]*m//g' | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+                
+                # Method 2: If method 1 fails, try regex pattern matching for UUID
+                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
+                  LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+                fi
+                
+                # Method 3: Try extracting from any line containing "ID:"
+                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
+                  LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 10 "ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+                fi
                 
                 if [ -n "$LOCK_ID" ] && [ "$LOCK_ID" != "" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
                   echo "Found lock ID: $LOCK_ID"
@@ -153,9 +185,21 @@ jobs:
               # Check if it's a lock error and extract lock ID
               if eval "$cmd" 2>&1 | grep -q "Error acquiring the state lock"; then
                 echo "🔒 State lock detected, attempting to unlock..."
-                # Capture the full error output, strip ANSI codes, and extract lock ID
-                ERROR_OUTPUT=$(eval "$cmd" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
-                LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+                # Capture the full error output and try multiple extraction methods
+                ERROR_OUTPUT=$(eval "$cmd" 2>&1)
+                
+                # Method 1: Strip ANSI codes and extract from Lock Info section
+                LOCK_ID=$(echo "$ERROR_OUTPUT" | sed 's/\x1b\[[0-9;]*m//g' | grep -A 20 "Lock Info:" | grep "^[[:space:]]*ID:" | sed 's/^[[:space:]]*ID:[[:space:]]*//' | sed 's/[[:space:]]*$//' | head -1)
+                
+                # Method 2: If method 1 fails, try regex pattern matching for UUID
+                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
+                  LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+                fi
+                
+                # Method 3: Try extracting from any line containing "ID:"
+                if [ -z "$LOCK_ID" ] || [ "$LOCK_ID" = "" ]; then
+                  LOCK_ID=$(echo "$ERROR_OUTPUT" | grep -A 10 "ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+                fi
                 
                 if [ -n "$LOCK_ID" ] && [ "$LOCK_ID" != "" ] && [[ "$LOCK_ID" =~ ^[a-f0-9-]+$ ]]; then
                   echo "Found lock ID: $LOCK_ID"
